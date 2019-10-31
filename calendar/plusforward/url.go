@@ -8,9 +8,9 @@ import (
 )
 
 const LabelQuakeLive = "qlv"
-const LabelQIV = "qiv"
-const LabelQIII = "qiii"
-const LabelQII = "qii"
+const LabelQuakeIV = "qiv"
+const LabelQuakeIII = "qiii"
+const LabelQuakeII = "qii"
 const LabelQuakeWorld = "qw"
 const LabelDiabotical = "dbt"
 const LabelDoom = "doom"
@@ -20,17 +20,17 @@ const LabelUnreal = "ut"
 const LabelWarsow = "wsw"
 const LabelDbmb = "dbmb"
 const LabelXonotic = "xnt"
-const LabelQChampions = "qch"
+const LabelQuakeChampions = "qch"
 const LabelQuakeCPMA = "cpma"
-const LabelPlusForward = "pfw"
 const LabelOverwatch = "ovw"
+const LabelPlusForward = "pfw"
 const LabelUnknown = "unk"
 
 var ValidTypes = [...]string{
 	LabelQuakeLive,
-	LabelQIV,
-	LabelQIII,
-	LabelQII,
+	LabelQuakeIV,
+	LabelQuakeIII,
+	LabelQuakeII,
 	LabelQuakeWorld,
 	LabelDiabotical,
 	LabelDoom,
@@ -40,7 +40,7 @@ var ValidTypes = [...]string{
 	LabelWarsow,
 	LabelDbmb,
 	LabelXonotic,
-	LabelQChampions,
+	LabelQuakeChampions,
 	LabelQuakeCPMA,
 	LabelOverwatch,
 }
@@ -48,9 +48,9 @@ var ValidTypes = [...]string{
 var baseURIs = map[string]string{
 	LabelPlusForward: "https://www.plusforward.net",
 	LabelQuakeLive:   "https://www.plusforward.net",
-	LabelQIV:         "https://www.plusforward.net",
-	LabelQIII:        "https://www.plusforward.net",
-	LabelQII:         "https://www.plusforward.net",
+	LabelQuakeIV:     "https://www.plusforward.net",
+	LabelQuakeIII:    "https://www.plusforward.net",
+	LabelQuakeII:     "https://www.plusforward.net",
 	LabelQuakeWorld:  "https://www.plusforward.net",
 	LabelDiabotical:  "https://www.plusforward.net",
 	LabelDoom:        "https://www.plusforward.net",
@@ -61,16 +61,16 @@ var baseURIs = map[string]string{
 	LabelWarsow:      "https://www.plusforward.net",
 	LabelDbmb:        "https://www.plusforward.net",
 	LabelXonotic:     "https://www.plusforward.net",
-	LabelQChampions:  "https://www.plusforward.net",
-	LabelQuakeCPMA:   "https://www.plusforward.net",
+	LabelQuakeChampions: "https://www.plusforward.net",
+	LabelQuakeCPMA:      "https://www.plusforward.net",
 }
 
 var calendarPath = map[string]string{
 	LabelPlusForward: "/calendar/",
 	LabelQuakeLive:   "/calendar/",
-	LabelQIV:         "/calendar/",
-	LabelQIII:        "/calendar/",
-	LabelQII:         "/calendar/",
+	LabelQuakeIV:     "/calendar/",
+	LabelQuakeIII:    "/calendar/",
+	LabelQuakeII:     "/calendar/",
 	LabelQuakeWorld:  "/calendar/",
 	LabelDiabotical:  "/calendar/",
 	LabelDoom:        "/calendar/",
@@ -81,16 +81,16 @@ var calendarPath = map[string]string{
 	LabelWarsow:      "/calendar/",
 	LabelDbmb:        "/calendar/",
 	LabelXonotic:     "/calendar/",
-	LabelQChampions:  "/calendar/",
-	LabelQuakeCPMA:   "/calendar/",
+	LabelQuakeChampions: "/calendar/",
+	LabelQuakeCPMA:      "/calendar/",
 }
 
 var eventPath = map[string]string{
 	LabelPlusForward: "/calendar/manage/",
 	LabelQuakeLive:   "/calendar/manage/",
-	LabelQIV:         "/calendar/manage/",
-	LabelQIII:        "/calendar/manage/",
-	LabelQII:         "/calendar/manage/",
+	LabelQuakeIV:     "/calendar/manage/",
+	LabelQuakeIII:    "/calendar/manage/",
+	LabelQuakeII:     "/calendar/manage/",
 	LabelQuakeWorld:  "/calendar/manage/",
 	LabelDiabotical:  "/calendar/manage/",
 	LabelDoom:        "/calendar/manage/",
@@ -101,27 +101,27 @@ var eventPath = map[string]string{
 	LabelWarsow:      "/calendar/manage/",
 	LabelDbmb:        "/calendar/manage/",
 	LabelXonotic:     "/calendar/manage/",
-	LabelQChampions:  "/calendar/manage/",
-	LabelQuakeCPMA:   "/calendar/manage/",
+	LabelQuakeChampions: "/calendar/manage/",
+	LabelQuakeCPMA:      "/calendar/manage/",
 }
 
 var calendarType = map[string]int{
-	LabelPlusForward: 3,
-	LabelQuakeLive:   4,
-	LabelQIV:         5,
-	LabelQIII:        6,
-	LabelQII:         7,
-	LabelQuakeWorld:  8,
-	LabelDiabotical:  9,
-	LabelDoom:        10,
-	LabelReflex:      13,
-	LabelOverwatch:   14,
-	LabelGG:          15,
-	LabelUnreal:      16,
-	LabelWarsow:      17,
-	LabelDbmb:        18,
-	LabelXonotic:     20,
-	LabelQChampions:  21,
+	LabelQuakeLive:  3,
+	LabelQuakeIV:    4,
+	LabelQuakeIII:   5,
+	LabelQuakeII:    6,
+	LabelQuakeWorld: 7,
+	LabelDiabotical: 8,
+	LabelDoom:       9,
+	LabelReflex:     10,
+	LabelOverwatch:  13,
+	LabelGG:         14,
+	LabelUnreal:     15,
+	LabelWarsow:     16,
+	LabelDbmb:       17,
+	LabelXonotic:    18,
+	LabelQuakeChampions: 20,
+	LabelQuakeCPMA:      21,
 }
 
 func ValidType(typ string) bool {
@@ -139,7 +139,8 @@ func getQuery(typ string, date time.Time, by string) url.Values {
 	q.Add("year", date.Format("2006"))
 	q.Add("month", date.Format("01"))
 	q.Add("day", date.Format("02"))
-	q.Add("game", typ)
+	q.Add("ongoing", "1")
+	q.Add("cat", typ)
 	return q
 }
 

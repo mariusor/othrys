@@ -3,15 +3,32 @@ package calendar
 import (
 	"fmt"
 	"github.com/anaskhan96/soup"
-	"github.com/mariusor/esports-calendar/app/liquid"
-	"github.com/mariusor/esports-calendar/app/plusforward"
+	"github.com/mariusor/esports-calendar/calendar/liquid"
+	"github.com/mariusor/esports-calendar/calendar/plusforward"
+	"github.com/mariusor/esports-calendar/storage"
 	"net/url"
 	"os"
 	"time"
 )
 
+var DefaultValues = []string{liquid.LabelTeamLiquid, plusforward.LabelPlusForward}
+
+func GetTypes(types ...string) []string {
+	fetchTypes := make([]string, 0)
+	for _, cal := range types {
+		if cal == liquid.LabelTeamLiquid {
+			fetchTypes = append(fetchTypes, liquid.ValidTypes[:]...)
+		} else if cal == plusforward.LabelPlusForward {
+			fetchTypes = append(fetchTypes, plusforward.ValidTypes[:]...)
+		} else {
+			fetchTypes = append(fetchTypes, cal)
+		}
+	}
+	return fetchTypes
+}
+
 type Fetcher interface {
-	Load(startDate time.Time, period time.Duration) ([]Event, error)
+	Load(startDate time.Time, period time.Duration) ([]storage.Event, error)
 }
 
 func ValidTypes() []string {
@@ -49,8 +66,8 @@ func New(types ...string) *cal {
 	}
 }
 
-func (c cal) Load(startDate time.Time, period time.Duration)  ([]Event, error) {
-	events := make([]Event, 0)
+func (c cal) Load(startDate time.Time, period time.Duration)  ([]storage.Event, error) {
+	events := make([]storage.Event, 0)
 	urls := make([]*url.URL, 0)
 	for _, typ := range c.types {
 		validType := false
