@@ -6,7 +6,7 @@ GO := go
 ENV ?= dev
 LDFLAGS ?= -X main.version=$(VERSION)
 BUILDFLAGS ?= -a -ldflags '$(LDFLAGS)'
-APPSOURCES := $(wildcard internal/*/*.go cmd/*.go)
+APPSOURCES := $(wildcard internal/*/*.go cmd/*.go app/*/*.go ./*.go)
 PROJECT_NAME := $(shell basename $(PWD))
 
 ifneq ($(ENV), dev)
@@ -23,21 +23,16 @@ endif
 BUILD := $(GO) build $(BUILDFLAGS)
 TEST := $(GO) test $(BUILDFLAGS)
 
-.PHONY: all run clean test coverage
+.PHONY: all cal-ctl clean test coverage
 
-all: calendar
+all: cal-ctl
 
-calendar: bin/calendar
-bin/calendar: go.mod cli/calendar/main.go $(APPSOURCES)
-	$(BUILD) -tags $(ENV) -o $@ ./cli/calendar/main.go
-
-run: calendar
-	@./bin/calendar
+cal-ctl: bin/cal-ctl
+bin/cal-ctl: go.mod cli/cal_ctl.go $(APPSOURCES)
+	$(BUILD) -tags $(ENV) -o $@ ./cli/cal_ctl.go
 
 clean:
 	-$(RM) bin/*
-	$(MAKE) -C tests $@
-
 
 test: TEST_TARGET := ./...
 test:
