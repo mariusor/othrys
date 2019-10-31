@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/mariusor/esports-calendar/cmd"
 	"github.com/urfave/cli"
 	"os"
@@ -10,19 +11,18 @@ var version = "(unknown)"
 
 func main() {
 	var err error
-	app := cli.App{}
-	app.Name = "cal-ctl"
-	app.Version = version
-	app.Before = func(c *cli.Context) error {
-		return nil
+	app := cli.App{
+		Name:    "cal-ctl",
+		Version: version,
+		Commands: []cli.Command{
+			cmd.ShowTypes,
+			cmd.Fetch,
+		},
 	}
 
-	app.Commands = []cli.Command{
-		cmd.ShowTypes,
-		cmd.Fetch,
-	}
 	err = app.Run(os.Args)
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %s", err)
 		os.Exit(1)
 	}
 }

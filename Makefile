@@ -6,7 +6,7 @@ GO := go
 ENV ?= dev
 LDFLAGS ?= -X main.version=$(VERSION)
 BUILDFLAGS ?= -a -ldflags '$(LDFLAGS)'
-APPSOURCES := $(wildcard internal/*/*.go cmd/*.go app/*/*.go ./*.go)
+APPSOURCES := $(wildcard internal/*/*.go cmd/*.go calendar/*/*.go calendar/*.go storage/*.go)
 PROJECT_NAME := $(shell basename $(PWD))
 
 ifneq ($(ENV), dev)
@@ -28,8 +28,8 @@ TEST := $(GO) test $(BUILDFLAGS)
 all: cal-ctl
 
 cal-ctl: bin/cal-ctl
-bin/cal-ctl: go.mod cli/cal_ctl.go $(APPSOURCES)
-	$(BUILD) -tags $(ENV) -o $@ ./cli/cal_ctl.go
+bin/cal-ctl: go.mod cli/calctl.go $(APPSOURCES)
+	$(BUILD) -tags $(ENV) -o $@ ./cli/calctl.go
 
 clean:
 	-$(RM) bin/*
