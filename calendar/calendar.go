@@ -2,113 +2,62 @@ package calendar
 
 import (
 	"fmt"
-	"github.com/anaskhan96/soup"
-	"github.com/mariusor/esports-calendar/calendar/liquid"
-	"github.com/mariusor/esports-calendar/calendar/plusforward"
-	"github.com/mariusor/esports-calendar/storage"
-	"net/url"
-	"os"
+	"sort"
 	"time"
 )
 
-var DefaultValues = []string{liquid.LabelTeamLiquid, plusforward.LabelPlusForward}
-
-func GetTypes(types ...string) []string {
-	fetchTypes := make([]string, 0)
-	for _, cal := range types {
-		if cal == liquid.LabelTeamLiquid {
-			fetchTypes = append(fetchTypes, liquid.ValidTypes[:]...)
-		} else if cal == plusforward.LabelPlusForward {
-			fetchTypes = append(fetchTypes, plusforward.ValidTypes[:]...)
-		} else {
-			fetchTypes = append(fetchTypes, cal)
-		}
-	}
-	return fetchTypes
-}
-
 type Fetcher interface {
-	Load(startDate time.Time, period time.Duration) ([]storage.Event, error)
+	Load(startDate time.Time, period time.Duration) ([]Event, error)
 }
 
-func ValidTypes() []string {
-	types := make([]string, 0)
-	for _, typ := range liquid.ValidTypes {
-		types = append(types, typ)
-	}
-	for _, typ := range plusforward.ValidTypes {
-		types = append(types, typ)
-	}
-	return types
+type Event struct {
+	CalID        int
+	StartTime    time.Time
+	Duration     time.Duration
+	LastModified time.Time
+	Type         string
+	Category     string
+	Stage        string
+	Content      string
+	MatchCount   int
+	Links        []string
+	Canceled     bool
 }
 
-type logFn func(s string, args ...interface{})
-
-type cal struct {
-	types  []string
-	weekly bool
-	err    logFn
-	log    logFn
-}
-
-func New(types ...string) *cal {
-	logFn := func(s string, args ...interface{}) {
-		fmt.Printf(s, args...)
+func stringArrayEqual(a1, a2 []string) bool {
+	if len(a1) != len(a2) {
+		return false
 	}
-	errFn := func(s string, args ...interface{}) {
-		fmt.Fprintf(os.Stderr, s, args...)
-	}
-	return &cal{
-		types:  types,
-		weekly: true,
-		log:    logFn,
-		err:    errFn,
-	}
-}
-
-func (c cal) Load(startDate time.Time, period time.Duration)  ([]storage.Event, error) {
-	events := make([]storage.Event, 0)
-	urls := make([]*url.URL, 0)
-	for _, typ := range c.types {
-		validType := false
-		if plusforward.ValidType(typ) {
-			url, err := plusforward.GetCalendarURL(startDate, typ, true)
-			if err != nil {
-				//c.err("unable to get calendar URI for %s: %s", typ, err)
-				continue
-			}
-			validType = true
-			urls = append(urls, url)
-		}
-		if liquid.ValidType(typ) {
-			url, err := liquid.GetCalendarURL(startDate, typ, true)
-			if err != nil {
-				//c.err("unable to get calendar URI for %s: %s", typ, err)
-				continue
-			}
-			validType = true
-			urls = append(urls, url)
-		}
-		if !validType {
-			c.err("invalid type %s", typ)
+	sort.Strings(a1)
+	sort.Strings(a2)
+	for k, v := range a1 {
+		if v != a2[k] {
+			return false
 		}
 	}
-	for _, url := range urls {
-		r, err := loadURL(url)
-		if err != nil {
-			c.err("Unable to load URI %s: %s", url, err)
-			continue
-		}
-		c.log("%v\n", r)
-	}
-	return events, nil
+	return true
 }
 
-func loadURL(u *url.URL) (*soup.Root, error) {
-	resp, err := soup.Get(u.String())
-	if err != nil {
-		return nil, fmt.Errorf("unable to load calendar page: %w", err)
-	}
-	r := soup.HTMLParse(resp)
-	return &r, nil
+func (e Event) IsValid() bool {
+	return false
 }
+
+func (e Event) Equals(other Event) bool {
+	return e.CalID == other.CalID &&
+		e.StartTime == other.StartTime &&
+		e.Duration == other.Duration &&
+		e.Type == other.Type &&
+		e.Category == other.Category &&
+		e.Stage == other.Stage &&
+		e.Content == other.Content &&
+		stringArrayEqual(e.Links, other.Links) &&
+		e.Canceled == other.Canceled
+}
+
+func (e Event) String() string {
+	if len(e.Category) == 0 || len(e.Stage) == 0 {
+		return fmt.Sprintf("<%s//%s>", e.StartTime, e.Duration)
+	}
+	return fmt.Sprintf("<[%s:%s] @ %s//%s>", e.Category, e.Stage, e.StartTime, e.Duration)
+}
+

@@ -1,10 +1,11 @@
 package liquid
 
 import (
-	"github.com/anaskhan96/soup"
-	"github.com/mariusor/esports-calendar/storage"
+	"fmt"
+	"github.com/mariusor/esports-calendar/calendar"
+	"golang.org/x/net/html"
 )
 
-func LoadEvents(soup *soup.Root) ([]storage.Event, error) {
-	return nil, nil
+func LoadEvents(root *html.Node) ([]calendar.Event, error) {
+	return nil, fmt.Errorf("not implemented %s.%s", "liquid", "LoadEvents")
 }
