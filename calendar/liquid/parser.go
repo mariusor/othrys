@@ -51,7 +51,7 @@ func LoadEvents(url *url.URL, date time.Time) (calendar.Events, error) {
 
 	return events, nil
 }
-
+const calID = 100000000
 func loadEvent(e *calendar.Event, date time.Time, s *goquery.Selection) {
 	e.MatchCount = 1
 	e.Category = LabelUnknown
@@ -74,23 +74,25 @@ func loadEvent(e *calendar.Event, date time.Time, s *goquery.Selection) {
 	s.Find("div.ev-stage").Each(func(i int, s *goquery.Selection) {
 		e.Stage = s.Text()
 	})
-	s.Find("div.ev-ctrl").Each(func(i int, s *goquery.Selection) {
-		ss := s.Find("span")
-		e.Category = ss.Text()
-		if attrID, ok := ss.Attr("data-event-id"); ok {
-			if id, err := strconv.ParseInt(attrID, 10, 32); err == nil {
-				e.CalID = id
-			}
-		}
-	})
+	var perTypID int64 = 0
 	if style, exists := s.Find("span.league-sprite-small").Attr("style"); exists {
 		r := regexp.MustCompile(`\d+`)
 		if m := r.FindSubmatch([]byte(style)); m != nil {
 			if typID, err := strconv.ParseInt(string(m[0]), 10, 32); err == nil {
 				e.Type = getType(typID)
+				perTypID = calID / 100 * typID
 			}
 		}
 	}
+	s.Find("div.ev-ctrl").Each(func(i int, s *goquery.Selection) {
+		ss := s.Find("span")
+		e.Category = ss.Text()
+		if attrID, ok := ss.Attr("data-event-id"); ok {
+			if id, err := strconv.ParseInt(attrID, 10, 32); err == nil {
+				e.CalID = id + calID + perTypID
+			}
+		}
+	})
 }
 
 func getType(key int64) string {

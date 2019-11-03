@@ -69,11 +69,13 @@ func loadOngoingEvent(e *calendar.Event, s *goquery.Selection) {
 	e.MatchCount = 1
 	e.Type = LabelUnknown
 	//category_div = event_block.find("div", class_="cal_e_title")
+	var perTypID int64 = 0
 	if class, ok := s.Attr("class"); ok {
 		e.Type = getTypeFromClass(class)
+		perTypID = calID / 200 * int64(calendarType[e.Type])
 	}
 	if href, ok := s.Attr("href"); ok {
-		e.CalID = getCalIDFromHref(href)
+		e.CalID = getCalIDFromHref(href) + calID + perTypID
 	}
 	if tit, ok := s.Attr("title"); ok {
 		elems := strings.Split(tit, "|")
@@ -98,6 +100,7 @@ func loadEvent(e *calendar.Event, date time.Time, s *goquery.Selection) {
 	e.MatchCount = 1
 	e.Type = LabelUnknown
 
+	var perTypID int64 = 0
 	//category_div = event_block.find("div", class_="cal_e_title")
 	s.Find("div.cal_e_title").Each(func(i int, s *goquery.Selection) {
 		//title_div = category_div.find("div", class_="cal_title")
@@ -112,16 +115,17 @@ func loadEvent(e *calendar.Event, date time.Time, s *goquery.Selection) {
 		}
 		if class, exists := s.Find("div.cal_cat").Find("i.pfcat").Attr("class"); exists {
 			e.Type = getTypeFromClass(class)
+			perTypID = calID / 200 * int64(calendarType[e.Type])
 		}
 		//matches_container_div = event_block.find("div", class_="cal_matches")
 		s.Find("div.cal_matches").Each(func(i int, s *goquery.Selection) {
 		})
 		if href, ok := s.Find("a").Attr("href"); ok {
-			e.CalID = getCalIDFromHref(href)
+			e.CalID = getCalIDFromHref(href) + calID + perTypID
 		}
 	})
 }
-
+const calID = 200000000
 func getCalIDFromHref(href string) int64 {
 	r := regexp.MustCompile(`post/(\d+)`)
 	m := r.FindSubmatch([]byte(href))
