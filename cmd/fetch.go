@@ -172,7 +172,8 @@ func fetchCalendars(c *cli.Context) error {
 			start = sfp
 		}
 	}
-	events, err := f.Load(start, defaultDuration)
+	duration := c.Duration("end")
+	events, err := f.Load(start, duration)
 	fmt.Printf("%#v", events)
 	return err
 }
