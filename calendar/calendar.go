@@ -8,7 +8,7 @@ import (
 )
 
 type Fetcher interface {
-	Load(startDate time.Time, period time.Duration) (Events, error)
+	Load(startDate time.Time) (Events, error)
 }
 
 type Event struct {

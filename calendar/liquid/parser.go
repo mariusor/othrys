@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -56,7 +57,17 @@ func loadEvent(e *calendar.Event, date time.Time, s *goquery.Selection) {
 	e.MatchCount = 1
 	e.Category = LabelUnknown
 	s.Find("div.ev-match").Each(func(i int, s *goquery.Selection) {
-		e.Content = s.Text()
+		rawContent := s.Text()
+		lines := strings.Split(rawContent, "\n")
+		newLines := make([]string, 0)
+		for _, line := range lines {
+			line = strings.TrimSpace(line)
+			if len(line) > 0 {
+				newLines = append(newLines, line)
+			}
+		}
+		e.Content = strings.Join(newLines, "\n")
+
 		r := regexp.MustCompile(" vs ")
 		m := r.Find([]byte(e.Content))
 
