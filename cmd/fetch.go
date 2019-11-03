@@ -101,46 +101,60 @@ func ValidTypes() []string {
 
 type logFn func(s string, args ...interface{})
 
+type toLoad struct {
+	u *url.URL
+	d time.Time
+	t string
+}
+
 func (c cal) Load(startDate time.Time, period time.Duration) (calendar.Events, error) {
 	events := make(calendar.Events, 0)
-	urls := make(map[string]*url.URL, 0)
-	for _, typ := range c.types {
-		validType := false
-		if plusforward.ValidType(typ) {
-			url, err := plusforward.GetCalendarURL(startDate, typ, true)
-			if err != nil {
-				//c.err("unable to get calendar URI for %s: %s", typ, err)
-				continue
+	urls := make([]toLoad, 0)
+	date := startDate
+	endDate := startDate.Add(period)
+	for {
+		if endDate.Sub(date) <= 0 {
+			break
+		}
+		for _, typ := range c.types {
+			validType := false
+			if plusforward.ValidType(typ) {
+				url, err := plusforward.GetCalendarURL(date, typ, true)
+				if err != nil {
+					//c.err("unable to get calendar URI for %s: %s", typ, err)
+					continue
+				}
+				validType = true
+				urls = append(urls, toLoad{u: url, d: date, t: typ,})
 			}
-			validType = true
-			urls[typ] = url
-		}
-		if liquid.ValidType(typ) {
-			url, err := liquid.GetCalendarURL(startDate, typ, true)
-			if err != nil {
-				//c.err("unable to get calendar URI for %s: %s", typ, err)
-				continue
+			if liquid.ValidType(typ) {
+				url, err := liquid.GetCalendarURL(date, typ, true)
+				if err != nil {
+					//c.err("unable to get calendar URI for %s: %s", typ, err)
+					continue
+				}
+				validType = true
+				urls = append(urls, toLoad{u: url, d: date, t: typ,})
 			}
-			validType = true
-			urls[typ] = url
+			if !validType {
+				c.err("invalid type %s", typ)
+			}
 		}
-		if !validType {
-			c.err("invalid type %s", typ)
-		}
+		date = date.Add(7 * 24 * time.Hour)
 	}
-	for typ, url := range urls {
-		if plusforward.ValidType(typ) {
-			ev, err := plusforward.LoadEvents(url, startDate)
+	for _, l := range urls {
+		if plusforward.ValidType(l.t) {
+			ev, err := plusforward.LoadEvents(l.u, l.d)
 			if err != nil {
-				c.err("Unable to parse page URI %s: %s", url, err)
+				c.err("Unable to parse page URI %s: %s", l.u, err)
 				continue
 			}
 			events = append(events, ev...)
 		}
-		if liquid.ValidType(typ) {
-			ev, err := liquid.LoadEvents(url, startDate)
+		if liquid.ValidType(l.t) {
+			ev, err := liquid.LoadEvents(l.u, l.d)
 			if err != nil {
-				c.err("Unable to parse page URI %s: %s", url, err)
+				c.err("Unable to parse page URI %s: %s", l.u, err)
 				continue
 			}
 			events = append(events, ev...)
