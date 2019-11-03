@@ -46,85 +46,89 @@ var ValidTypes = [...]string{
 }
 
 var baseURIs = map[string]string{
-	LabelPlusForward: "https://www.plusforward.net",
-	LabelQuakeLive:   "https://www.plusforward.net",
-	LabelQuakeIV:     "https://www.plusforward.net",
-	LabelQuakeIII:    "https://www.plusforward.net",
-	LabelQuakeII:     "https://www.plusforward.net",
-	LabelQuakeWorld:  "https://www.plusforward.net",
-	LabelDiabotical:  "https://www.plusforward.net",
-	LabelDoom:        "https://www.plusforward.net",
-	LabelReflex:      "https://www.plusforward.net",
-	LabelOverwatch:   "https://www.plusforward.net",
-	LabelGG:          "https://www.plusforward.net",
-	LabelUnreal:      "https://www.plusforward.net",
-	LabelWarsow:      "https://www.plusforward.net",
-	LabelDbmb:        "https://www.plusforward.net",
-	LabelXonotic:     "https://www.plusforward.net",
+	LabelPlusForward:    "https://www.plusforward.net",
+	LabelQuakeLive:      "https://www.plusforward.net",
+	LabelQuakeIV:        "https://www.plusforward.net",
+	LabelQuakeIII:       "https://www.plusforward.net",
+	LabelQuakeII:        "https://www.plusforward.net",
+	LabelQuakeWorld:     "https://www.plusforward.net",
+	LabelDiabotical:     "https://www.plusforward.net",
+	LabelDoom:           "https://www.plusforward.net",
+	LabelReflex:         "https://www.plusforward.net",
+	LabelOverwatch:      "https://www.plusforward.net",
+	LabelGG:             "https://www.plusforward.net",
+	LabelUnreal:         "https://www.plusforward.net",
+	LabelWarsow:         "https://www.plusforward.net",
+	LabelDbmb:           "https://www.plusforward.net",
+	LabelXonotic:        "https://www.plusforward.net",
 	LabelQuakeChampions: "https://www.plusforward.net",
 	LabelQuakeCPMA:      "https://www.plusforward.net",
 }
 
 var calendarPath = map[string]string{
-	LabelPlusForward: "/calendar/",
-	LabelQuakeLive:   "/calendar/",
-	LabelQuakeIV:     "/calendar/",
-	LabelQuakeIII:    "/calendar/",
-	LabelQuakeII:     "/calendar/",
-	LabelQuakeWorld:  "/calendar/",
-	LabelDiabotical:  "/calendar/",
-	LabelDoom:        "/calendar/",
-	LabelReflex:      "/calendar/",
-	LabelOverwatch:   "/calendar/",
-	LabelGG:          "/calendar/",
-	LabelUnreal:      "/calendar/",
-	LabelWarsow:      "/calendar/",
-	LabelDbmb:        "/calendar/",
-	LabelXonotic:     "/calendar/",
+	LabelPlusForward:    "/calendar/",
+	LabelQuakeLive:      "/calendar/",
+	LabelQuakeIV:        "/calendar/",
+	LabelQuakeIII:       "/calendar/",
+	LabelQuakeII:        "/calendar/",
+	LabelQuakeWorld:     "/calendar/",
+	LabelDiabotical:     "/calendar/",
+	LabelDoom:           "/calendar/",
+	LabelReflex:         "/calendar/",
+	LabelOverwatch:      "/calendar/",
+	LabelGG:             "/calendar/",
+	LabelUnreal:         "/calendar/",
+	LabelWarsow:         "/calendar/",
+	LabelDbmb:           "/calendar/",
+	LabelXonotic:        "/calendar/",
 	LabelQuakeChampions: "/calendar/",
 	LabelQuakeCPMA:      "/calendar/",
 }
 
 var eventPath = map[string]string{
-	LabelPlusForward: "/calendar/manage/",
-	LabelQuakeLive:   "/calendar/manage/",
-	LabelQuakeIV:     "/calendar/manage/",
-	LabelQuakeIII:    "/calendar/manage/",
-	LabelQuakeII:     "/calendar/manage/",
-	LabelQuakeWorld:  "/calendar/manage/",
-	LabelDiabotical:  "/calendar/manage/",
-	LabelDoom:        "/calendar/manage/",
-	LabelReflex:      "/calendar/manage/",
-	LabelOverwatch:   "/calendar/manage/",
-	LabelGG:          "/calendar/manage/",
-	LabelUnreal:      "/calendar/manage/",
-	LabelWarsow:      "/calendar/manage/",
-	LabelDbmb:        "/calendar/manage/",
-	LabelXonotic:     "/calendar/manage/",
+	LabelPlusForward:    "/calendar/manage/",
+	LabelQuakeLive:      "/calendar/manage/",
+	LabelQuakeIV:        "/calendar/manage/",
+	LabelQuakeIII:       "/calendar/manage/",
+	LabelQuakeII:        "/calendar/manage/",
+	LabelQuakeWorld:     "/calendar/manage/",
+	LabelDiabotical:     "/calendar/manage/",
+	LabelDoom:           "/calendar/manage/",
+	LabelReflex:         "/calendar/manage/",
+	LabelOverwatch:      "/calendar/manage/",
+	LabelGG:             "/calendar/manage/",
+	LabelUnreal:         "/calendar/manage/",
+	LabelWarsow:         "/calendar/manage/",
+	LabelDbmb:           "/calendar/manage/",
+	LabelXonotic:        "/calendar/manage/",
 	LabelQuakeChampions: "/calendar/manage/",
 	LabelQuakeCPMA:      "/calendar/manage/",
 }
 
 var calendarType = map[string]int{
-	LabelQuakeLive:  3,
-	LabelQuakeIV:    4,
-	LabelQuakeIII:   5,
-	LabelQuakeII:    6,
-	LabelQuakeWorld: 7,
-	LabelDiabotical: 8,
-	LabelDoom:       9,
-	LabelReflex:     10,
-	LabelOverwatch:  13,
-	LabelGG:         14,
-	LabelUnreal:     15,
-	LabelWarsow:     16,
-	LabelDbmb:       17,
-	LabelXonotic:    18,
+	LabelUnknown:        0,
+	LabelQuakeLive:      3,
+	LabelQuakeIV:        4,
+	LabelQuakeIII:       5,
+	LabelQuakeII:        6,
+	LabelQuakeWorld:     7,
+	LabelDiabotical:     8,
+	LabelDoom:           9,
+	LabelReflex:         10,
+	LabelOverwatch:      13,
+	LabelGG:             14,
+	LabelUnreal:         15,
+	LabelWarsow:         16,
+	LabelDbmb:           17,
+	LabelXonotic:        18,
 	LabelQuakeChampions: 20,
 	LabelQuakeCPMA:      21,
 }
 
 func ValidType(typ string) bool {
+	if typ == LabelPlusForward {
+		return true
+	}
 	for _, t := range ValidTypes {
 		if strings.ToLower(typ) == t {
 			return true
@@ -140,7 +144,9 @@ func getQuery(typ string, date time.Time, by string) url.Values {
 	q.Add("month", date.Format("01"))
 	q.Add("day", date.Format("02"))
 	q.Add("ongoing", "1")
-	q.Add("cat", typ)
+	if typ != "0" {
+		q.Add("cat", typ)
+	}
 	return q
 }
 
@@ -190,10 +196,7 @@ func GetCalendarURL(date time.Time, typ string, byWeek bool) (*url.URL, error) {
 		return nil, fmt.Errorf("unknown calendar path for type: %s", typ)
 	}
 	u.Path = path
-	game, ok := calendarType[typ]
-	if !ok {
-		return nil, fmt.Errorf("unknown game id path for type: %s", typ)
-	}
+	game, _ := calendarType[typ]
 	period := "month"
 	if byWeek {
 		period = "week"

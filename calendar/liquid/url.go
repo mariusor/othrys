@@ -68,16 +68,20 @@ var eventPath = map[string]string{
 	LabelDota:        "/calendar/manage",
 	LabelLOL:         "/calendar/manage",
 }
-
 var calendarType = map[string]int{
+	LabelUnknown: 0,
 	LabelSC2:   1,
 	LabelBW:    2,
 	LabelCSGO:  3,
 	LabelHOTS:  4,
 	LabelSmash: 5,
+	LabelOverwatch: 6,
 }
 
 func ValidType(typ string) bool {
+	if typ == LabelTeamLiquid {
+		return true
+	}
 	for _, t := range ValidTypes {
 		if strings.ToLower(typ) == t {
 			return true
@@ -152,10 +156,7 @@ func GetCalendarURL(date time.Time, typ string, byWeek bool) (*url.URL, error) {
 		return nil, fmt.Errorf("unknown calendar path for type: %s", typ)
 	}
 	u.Path = path
-	game, ok := calendarType[typ]
-	if !ok {
-		return nil, fmt.Errorf("unknown game id path for type: %s", typ)
-	}
+	game, _ := calendarType[typ]
 	period := "month"
 	if byWeek {
 		period = "week"

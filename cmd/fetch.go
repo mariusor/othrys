@@ -6,8 +6,6 @@ import (
 	"github.com/mariusor/esports-calendar/calendar/liquid"
 	"github.com/mariusor/esports-calendar/calendar/plusforward"
 	"github.com/urfave/cli"
-	"golang.org/x/net/html"
-	"net/http"
 	"net/url"
 	"os"
 	"time"
@@ -78,9 +76,11 @@ func GetTypes(types ...string) []string {
 	fetchTypes := make([]string, 0)
 	for _, cal := range types {
 		if cal == liquid.LabelTeamLiquid {
-			fetchTypes = append(fetchTypes, liquid.ValidTypes[:]...)
+			//fetchTypes = append(fetchTypes, liquid.ValidTypes[:]...)
+			fetchTypes = append(fetchTypes, cal)
 		} else if cal == plusforward.LabelPlusForward {
-			fetchTypes = append(fetchTypes, plusforward.ValidTypes[:]...)
+			//fetchTypes = append(fetchTypes, plusforward.ValidTypes[:]...)
+			fetchTypes = append(fetchTypes, cal)
 		} else {
 			fetchTypes = append(fetchTypes, cal)
 		}
@@ -101,8 +101,8 @@ func ValidTypes() []string {
 
 type logFn func(s string, args ...interface{})
 
-func (c cal) Load(startDate time.Time, period time.Duration) ([]calendar.Event, error) {
-	events := make([]calendar.Event, 0)
+func (c cal) Load(startDate time.Time, period time.Duration) (calendar.Events, error) {
+	events := make(calendar.Events, 0)
 	urls := make(map[string]*url.URL, 0)
 	for _, typ := range c.types {
 		validType := false
@@ -129,13 +129,8 @@ func (c cal) Load(startDate time.Time, period time.Duration) ([]calendar.Event, 
 		}
 	}
 	for typ, url := range urls {
-		r, err := loadURL(url)
-		if err != nil {
-			c.err("Unable to load URI %s: %s", url, err)
-			continue
-		}
 		if plusforward.ValidType(typ) {
-			ev, err := plusforward.LoadEvents(r)
+			ev, err := plusforward.LoadEvents(url, startDate)
 			if err != nil {
 				c.err("Unable to parse page URI %s: %s", url, err)
 				continue
@@ -143,7 +138,7 @@ func (c cal) Load(startDate time.Time, period time.Duration) ([]calendar.Event, 
 			events = append(events, ev...)
 		}
 		if liquid.ValidType(typ) {
-			ev, err := liquid.LoadEvents(r)
+			ev, err := liquid.LoadEvents(url, startDate)
 			if err != nil {
 				c.err("Unable to parse page URI %s: %s", url, err)
 				continue
@@ -152,17 +147,6 @@ func (c cal) Load(startDate time.Time, period time.Duration) ([]calendar.Event, 
 		}
 	}
 	return events, nil
-}
-
-func loadURL(u *url.URL) (*html.Node, error) {
-	resp, err := http.Get(u.String())
-	if err != nil {
-		return nil, fmt.Errorf("unable to load calendar page: %w", err)
-	}
-	if resp.StatusCode == http.StatusOK {
-		return html.Parse(resp.Body)
-	}
-	return nil, fmt.Errorf("invalid response received: %d", resp.StatusCode)
 }
 
 func fetchCalendars(c *cli.Context) error {
@@ -174,6 +158,7 @@ func fetchCalendars(c *cli.Context) error {
 			start = sfp
 		}
 	}
-	f.Load(start, defaultDuration)
-	return nil
+	events, err := f.Load(start, defaultDuration)
+	fmt.Printf("%#v", events)
+	return err
 }

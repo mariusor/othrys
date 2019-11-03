@@ -3,15 +3,16 @@ package calendar
 import (
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 )
 
 type Fetcher interface {
-	Load(startDate time.Time, period time.Duration) ([]Event, error)
+	Load(startDate time.Time, period time.Duration) (Events, error)
 }
 
 type Event struct {
-	CalID        int
+	CalID        int64
 	StartTime    time.Time
 	Duration     time.Duration
 	LastModified time.Time
@@ -23,6 +24,8 @@ type Event struct {
 	Links        []string
 	Canceled     bool
 }
+
+type Events []Event
 
 func stringArrayEqual(a1, a2 []string) bool {
 	if len(a1) != len(a2) {
@@ -39,7 +42,7 @@ func stringArrayEqual(a1, a2 []string) bool {
 }
 
 func (e Event) IsValid() bool {
-	return false
+	return !e.StartTime.IsZero() && e.CalID > 0
 }
 
 func (e Event) Equals(other Event) bool {
@@ -55,9 +58,40 @@ func (e Event) Equals(other Event) bool {
 }
 
 func (e Event) String() string {
-	if len(e.Category) == 0 || len(e.Stage) == 0 {
-		return fmt.Sprintf("<%s//%s>", e.StartTime, e.Duration)
+	return e.GoString()
+}
+func (e Event) GoString() string {
+	fmtTime := e.StartTime.Format("2006-01-02 15:04 MST")
+	cat := ""
+	stg := ""
+	f := "%s%s%s"
+	if len(e.Category) > 0 {
+		cat = e.Category
+		f = "%s:%s%s"
+
 	}
-	return fmt.Sprintf("<[%s:%s] @ %s//%s>", e.Category, e.Stage, e.StartTime, e.Duration)
+	if len(e.Stage) > 0 {
+		stg = e.Stage
+		f = "%s:%s:%s"
+	}
+	return fmt.Sprintf("<[%d] " + f + " @ %s//%s>", e.CalID, e.Type, cat, stg, fmtTime, e.Duration)
+}
+func (e Events) String() string {
+	return e.GoString()
+}
+func (e Events) GoString() string {
+	ss := make([]string, len(e))
+	for i, ev := range e {
+		ss[i] = ev.GoString()
+	}
+	return fmt.Sprintf("Events[%d]:\n\t%s\n", len(e), strings.Join(ss, "\n\t"))
 }
 
+func (e Events) Contains(inc Event) bool {
+	for _, ev := range e {
+		if ev.CalID == inc.CalID {
+			return true
+		}
+	}
+	return false
+}
