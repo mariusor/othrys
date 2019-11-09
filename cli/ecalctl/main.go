@@ -12,8 +12,8 @@ var version = "(unknown)"
 func main() {
 	var err error
 
-	app := cli.App{
-		Name:    "cal-ctl",
+	ctl := cli.App{
+		Name:    "ecalctl",
 		Version: version,
 		Commands: []cli.Command{
 			cmd.ShowTypes,
@@ -22,7 +22,7 @@ func main() {
 		},
 	}
 
-	err = app.Run(os.Args)
+	err = ctl.Run(os.Args)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: %s\n", err)
 		os.Exit(1)
