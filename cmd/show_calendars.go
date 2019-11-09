@@ -9,9 +9,9 @@ import (
 )
 
 var ShowTypes = cli.Command{
-	Name:  "list",
-	Usage: "Lists supported calendar type, use --help to see a human readable list",
-	Action: showCalendars,
+	Name:               "calendars",
+	Usage:              "Lists supported calendar type, use --help to see a human readable list",
+	Action:             showCalendars,
 	CustomHelpTemplate: showHelp(),
 }
 

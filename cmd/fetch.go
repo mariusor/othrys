@@ -5,6 +5,7 @@ import (
 	"github.com/mariusor/esports-calendar/calendar"
 	"github.com/mariusor/esports-calendar/calendar/liquid"
 	"github.com/mariusor/esports-calendar/calendar/plusforward"
+	"github.com/mariusor/esports-calendar/storage/boltdb"
 	"github.com/urfave/cli"
 	"net/url"
 	"os"
@@ -81,7 +82,7 @@ func New(debug bool, types ...string) (*cal, error) {
 			rem = append(rem, i)
 		}
 	}
-	for i := len(rem)-1; i >= 0; i-- {
+	for i := len(rem) - 1; i >= 0; i-- {
 		types = append(types[:i], types[i+1:]...)
 	}
 	if len(types) == 0 {
@@ -98,16 +99,18 @@ func New(debug bool, types ...string) (*cal, error) {
 
 func ValidTypes() []string {
 	types := make([]string, 0)
+	types = append(types, liquid.LabelTeamLiquid)
 	for _, typ := range liquid.ValidTypes {
 		types = append(types, typ)
 	}
+	types = append(types, plusforward.LabelPlusForward)
 	for _, typ := range plusforward.ValidTypes {
 		types = append(types, typ)
 	}
 	return types
 }
 
-type logFn func(s string, args ...interface{})
+type logFn func(string, ...interface{})
 
 type toLoad struct {
 	u *url.URL
@@ -126,7 +129,7 @@ func (c cal) Load(startDate time.Time) (calendar.Events, error) {
 				c.err("unable to get calendar URI for %s: %s", typ, err)
 				continue
 			}
-			urls = append(urls, toLoad{u: url, d: date, t: typ,})
+			urls = append(urls, toLoad{u: url, d: date, t: typ})
 		}
 		if liquid.ValidType(typ) {
 			url, err := liquid.GetCalendarURL(date, typ, true)
@@ -134,7 +137,7 @@ func (c cal) Load(startDate time.Time) (calendar.Events, error) {
 				c.err("unable to get calendar URI for %s: %s", typ, err)
 				continue
 			}
-			urls = append(urls, toLoad{u: url, d: date, t: typ,})
+			urls = append(urls, toLoad{u: url, d: date, t: typ})
 		}
 	}
 
@@ -190,16 +193,21 @@ func fetchCalendars(c *cli.Context) error {
 
 	date := start
 	endDate := start.Add(duration - time.Second)
+	st := boltdb.New(boltdb.Config{
+		Path:  "./calendar.bdb",
+		LogFn: nil,
+		ErrFn: nil,
+	})
 
 	var events calendar.Events
 	for {
-		duration :=  durationStep - time.Second
+		duration := durationStep - time.Second
 		if debug {
 			f.log("Loading events for period: %s - %s", date.Format("2006-01-02 Mon, 15:04"), date.Add(duration).Format("2006-01-02 Mon, 15:04"))
 		}
 		events, err = f.Load(date)
-		if debug {
-			for _, e := range events {
+		for _, e := range events {
+			if debug {
 				fmtTime := e.StartTime.Format("2006-01-02 15:04 MST")
 				cat := ""
 				stg := ""
@@ -213,10 +221,18 @@ func fetchCalendars(c *cli.Context) error {
 					stg = e.Stage
 					fm = "%s:%s:%s"
 				}
-				f.log("[%d] " + fm + " @ %s//%s", e.CalID, e.Type, cat, stg, fmtTime, e.Duration)
+				f.log("[%d] "+fm+" @ %s//%s", e.CalID, e.Type, cat, stg, fmtTime, e.Duration)
 				if e.Content != "" {
 					f.log("%v", e.Content)
 				}
+			}
+			old := st.LoadEvent(e.Type, e.StartTime, e.CalID)
+			fmt.Printf("%v", old)
+			if !old.Equals(e) {
+				//err := st.SaveEvent(e)
+				//if err != nil {
+				//	f.err("Error saving %d: %s", e.CalID, err)
+				//}
 			}
 		}
 		if endDate.Sub(date) <= durationStep {

@@ -89,7 +89,7 @@ func (e Events) GoString() string {
 
 func (e Events) Contains(inc Event) bool {
 	for _, ev := range e {
-		if ev.CalID == inc.CalID {
+		if ev.Equals(inc) {
 			return true
 		}
 	}

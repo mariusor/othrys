@@ -52,7 +52,7 @@ func LoadEvents(url *url.URL, date time.Time) (calendar.Events, error) {
 			if len(subEv) > 0 {
 				events = append(events, subEv...)
 			}
-			if ev.IsValid() /*&& !events.Contains(ev) */{
+			if ev.IsValid() && !events.Contains(ev) {
 				events = append(events, ev)
 			}
 		})

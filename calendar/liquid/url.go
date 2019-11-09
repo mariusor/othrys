@@ -69,12 +69,12 @@ var eventPath = map[string]string{
 	LabelLOL:         "/calendar/manage",
 }
 var calendarType = map[string]int{
-	LabelUnknown: 0,
-	LabelSC2:   1,
-	LabelBW:    2,
-	LabelCSGO:  3,
-	LabelHOTS:  4,
-	LabelSmash: 5,
+	LabelUnknown:   0,
+	LabelSC2:       1,
+	LabelBW:        2,
+	LabelCSGO:      3,
+	LabelHOTS:      4,
+	LabelSmash:     5,
 	LabelOverwatch: 6,
 }
 
