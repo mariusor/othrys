@@ -227,12 +227,14 @@ func fetchCalendars(c *cli.Context) error {
 				}
 			}
 			old := st.LoadEvent(e.Type, e.StartTime, e.CalID)
-			fmt.Printf("%v", old)
+			if old.IsValid() {
+				fmt.Printf("%v", old)
+			}
 			if !old.Equals(e) {
-				//err := st.SaveEvent(e)
-				//if err != nil {
-				//	f.err("Error saving %d: %s", e.CalID, err)
-				//}
+				err := st.SaveEvent(e)
+				if err != nil {
+					f.err("Error saving %d: %s", e.CalID, err)
+				}
 			}
 		}
 		if endDate.Sub(date) <= durationStep {
