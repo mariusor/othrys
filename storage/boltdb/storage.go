@@ -102,13 +102,23 @@ func (r *repo) LoadEvents(cursor storage.DateCursor, types ...string) (calendar.
 	return loadFromBucket(r.d, r.root, cursor, types...)
 }
 
-func loadAllFromBucket(b *bolt.Bucket) calendar.Events {
+func loadFromBucketRecursive(b *bolt.Bucket, min, max []byte) calendar.Events {
 	events := make(calendar.Events, 0)
 
 	c := b.Cursor()
-	for key, raw := c.First(); key != nil; key, raw = c.Next() {
+
+	first := func () ([]byte, []byte) { return c.First() }
+	compare := func (k, v []byte) bool { return k != nil }
+	if min != nil {
+		first = func () ([]byte, []byte) { return c.Seek(min) }
+	}
+	if max != nil {
+		compare = func (k, v []byte) bool { return k != nil && bytes.Compare(k, max) <= 0 }
+	}
+	for key, raw := first(); compare(key, raw); key, raw = c.Next() {
 		if raw == nil {
-			events = append(events, loadAllFromBucket(b.Bucket(key))...)
+			// this is a bucket mate: descend!
+			events = append(events, loadFromBucketRecursive(b.Bucket(key), nil, nil)...)
 		} else {
 			ev, _ := loadItem(raw)
 			if ev.IsValid() {
@@ -132,57 +142,11 @@ func loadFromBucket(db *bolt.DB, root []byte, cursor storage.DateCursor, types .
 		var err error
 		for _, typ := range types {
 			var b *bolt.Bucket
-			if cursor.D != 0 {
-				min, max := getCursorPaths(cursor, []byte(typ))
-				b, min, max, err = descendToCommonBucket(rb, min, max)
-				c := b.Cursor()
-				if c == nil {
-					return fmt.Errorf("invalid bucket cursor %s/%s", root, min)
-				}
-				// Iterate over the paths
-				for key, raw := c.Seek(min); key != nil && bytes.Compare(key, max) <= 0; key, raw = c.Next() {
-					if raw == nil {
-						b, _, err = descendInBucket(b, key, false)
-						if err != nil {
-							continue
-						}
-						// bucket
-						events = append(events, loadAllFromBucket(b)...)
-					} else {
-						ev, err := loadItem(raw)
-						if err != nil || !ev.IsValid() {
-							continue
-						}
-						events = append(events, ev)
-					}
-				}
-			} else {
-				remainderPath := itemBucketPath([]byte(typ), cursor.T)
-				// Assume bucket exists and has keys
-				b, remainderPath, err = descendInBucket(rb, remainderPath, false)
-				if err != nil {
-					return err
-				}
-				if b == nil {
-					return fmt.Errorf("invalid bucket %s/%s", root, remainderPath)
-				}
-				c := b.Cursor()
-				if c == nil {
-					return fmt.Errorf("invalid bucket cursor %s/%s", root, remainderPath)
-				}
-				// if no path was returned from descendIntoBucket we iterate over all keys in the current bucket
-				for key, raw := c.First(); key != nil && raw != nil; key, raw = c.Next() {
-					it, err := loadItem(raw)
-					if err != nil {
-						continue
-					}
-					if it.IsValid() {
-						events = append(events, it)
-					}
-				}
-			}
+			min, max := getCursorPaths(cursor, []byte(typ))
+			b, min, max, err = descendToLastCommonBucket(rb, min, max)
+			events = append(events, loadFromBucketRecursive(b, min, max)...)
 		}
-		return nil
+		return err
 	})
 
 	return events, err
@@ -225,7 +189,7 @@ func itemBucketPath( typ []byte, date time.Time) []byte {
 	return bytes.Join(pathEl, pathSeparator)
 }
 
-func descendToCommonBucket(root *bolt.Bucket, min, max []byte, ) (*bolt.Bucket, []byte, []byte, error) {
+func descendToLastCommonBucket(root *bolt.Bucket, min, max []byte) (*bolt.Bucket, []byte, []byte, error) {
 	minPieces := bytes.Split(min, pathSeparator)
 	maxPieces := bytes.Split(max, pathSeparator)
 
