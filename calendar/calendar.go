@@ -79,6 +79,7 @@ func (e Event) GoString() string {
 func (e Events) String() string {
 	return e.GoString()
 }
+
 func (e Events) GoString() string {
 	ss := make([]string, len(e))
 	for i, ev := range e {

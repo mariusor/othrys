@@ -52,7 +52,9 @@ func LoadEvents(url *url.URL, date time.Time) (calendar.Events, error) {
 
 	return events, nil
 }
+
 const calID = 100000000
+
 func loadEvent(e *calendar.Event, date time.Time, s *goquery.Selection) {
 	e.MatchCount = 1
 	e.Category = LabelUnknown
