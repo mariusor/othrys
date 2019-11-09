@@ -17,8 +17,8 @@ type repo struct {
 	baseURL string
 	root    []byte
 	path    string
-	logFn   LoggerFn
-	errFn   LoggerFn
+	log     LoggerFn
+	err     LoggerFn
 }
 
 const (
@@ -35,16 +35,16 @@ type Config struct {
 // New returns a new repo repository
 func New(c Config) *repo {
 	b := repo{
-		root:  []byte(rootBucket),
-		path:  c.Path,
-		logFn: func(string, ...interface{}) {},
-		errFn: func(string, ...interface{}) {},
+		root: []byte(rootBucket),
+		path: c.Path,
+		log:  func(string, ...interface{}) {},
+		err:  func(string, ...interface{}) {},
 	}
 	if c.ErrFn != nil {
-		b.errFn = c.ErrFn
+		b.err = c.ErrFn
 	}
 	if c.LogFn != nil {
-		b.logFn = c.LogFn
+		b.log = c.LogFn
 	}
 
 	return &b
@@ -81,7 +81,7 @@ func (r *repo) close() error {
 func (r *repo) LoadEvent(typ string, date time.Time, id int64) calendar.Event {
 	events, err := r.LoadEvents(storage.DateCursor{T: date, D: time.Hour}, typ)
 	if err != nil {
-		r.errFn("error loading events: %s", err)
+		r.err("error loading events: %s", err)
 	}
 	for _, event := range events {
 		if event.CalID == id {
@@ -100,6 +100,24 @@ func (r *repo) LoadEvents(cursor storage.DateCursor, types ...string) (calendar.
 	}
 	defer r.close()
 	return loadFromBucket(r.d, r.root, cursor, types...)
+}
+
+func loadAllFromBucket(b *bolt.Bucket) calendar.Events {
+	events := make(calendar.Events, 0)
+
+	c := b.Cursor()
+	for key, raw := c.First(); key != nil; key, raw = c.Next() {
+		if raw == nil {
+			events = append(events, loadAllFromBucket(b.Bucket(key))...)
+		} else {
+			ev, _ := loadItem(raw)
+			if ev.IsValid() {
+				events = append(events, ev)
+			}
+		}
+	}
+
+	return events
 }
 
 func loadFromBucket(db *bolt.DB, root []byte, cursor storage.DateCursor, types ...string) (calendar.Events, error) {
@@ -126,20 +144,20 @@ func loadFromBucket(db *bolt.DB, root []byte, cursor storage.DateCursor, types .
 					if raw == nil {
 						b, _, err = descendInBucket(b, key, false)
 						if err != nil {
-
+							continue
 						}
 						// bucket
+						events = append(events, loadAllFromBucket(b)...)
+					} else {
+						ev, err := loadItem(raw)
+						if err != nil || !ev.IsValid() {
+							continue
+						}
+						events = append(events, ev)
 					}
-					//ev, err := loadItem(raw)
-					//if err != nil {
-					//	continue
-					//}
-					//if ev.IsValid() {
-					//	events = append(events, ev)
-					//}
 				}
 			} else {
-				remainderPath := itemBucketPath(cursor.T, []byte(typ))
+				remainderPath := itemBucketPath([]byte(typ), cursor.T)
 				// Assume bucket exists and has keys
 				b, remainderPath, err = descendInBucket(rb, remainderPath, false)
 				if err != nil {
@@ -185,23 +203,24 @@ var pathSeparator = []byte{'/'}
 func getCursorPaths(c storage.DateCursor, typ []byte) ([]byte, []byte) {
 	var min, max []byte
 	if c.D < 0 {
-		max = itemBucketPath(c.T, typ)
-		min = itemBucketPath(c.T.Add(c.D), typ)
+		max = itemBucketPath(typ, c.T)
+		min = itemBucketPath(typ, c.T.Add(c.D))
 	} else {
-		min = itemBucketPath(c.T, typ)
-		max = itemBucketPath(c.T.Add(c.D), typ)
+		min = itemBucketPath(typ, c.T)
+		max = itemBucketPath(typ, c.T.Add(c.D))
 	}
 	return min, max
 }
 
-func itemBucketPath(date time.Time, typ []byte) []byte {
+func itemBucketPath( typ []byte, date time.Time) []byte {
 	pathEl := make([][]byte, 0)
+
+	pathEl = append(pathEl, typ)
 	pathEl = append(pathEl, []byte(date.Format("06")))
 	pathEl = append(pathEl, []byte(date.Format("01")))
 	pathEl = append(pathEl, []byte(date.Format("02")))
 	pathEl = append(pathEl, []byte(date.Format("15")))
 	pathEl = append(pathEl, []byte(date.Format("04")))
-	pathEl = append(pathEl, typ)
 
 	return bytes.Join(pathEl, pathSeparator)
 }
@@ -278,7 +297,7 @@ func (r *repo) SaveEvents(events calendar.Events) error {
 	for _, ev := range events {
 		ev, err = save(r, ev)
 		if err != nil {
-			r.errFn("Error saving event %d: %s", ev.CalID, err)
+			r.err("Error saving event %d: %s", ev.CalID, err)
 		}
 	}
 	return err
@@ -298,7 +317,7 @@ func (r *repo) SaveEvent(ev calendar.Event) error {
 }
 
 func save(r *repo, ev calendar.Event) (calendar.Event, error) {
-	path := itemBucketPath(ev.StartTime, []byte(ev.Type))
+	path := itemBucketPath([]byte(ev.Type), ev.StartTime)
 
 	err := r.d.Update(func(tx *bolt.Tx) error {
 		root := tx.Bucket(r.root)
