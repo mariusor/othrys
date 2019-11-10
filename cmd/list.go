@@ -63,7 +63,7 @@ func listCalendars(c *cli.Context) error {
 		return fmt.Errorf("unable to load events: %w", err)
 	}
 	if len(events) == 0 {
-		fmt.Printf("nothing found")
+		fmt.Printf("nothing found\n")
 		return nil
 	}
 	for _, e := range events {

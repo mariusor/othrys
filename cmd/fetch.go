@@ -86,7 +86,8 @@ func New(debug bool, types ...string) (*cal, error) {
 		types = append(types[:i], types[i+1:]...)
 	}
 	if len(types) == 0 {
-		return nil, fmt.Errorf("no valid types found")
+		types = append(types, plusforward.ValidTypes[:]...)
+		types = append(types, liquid.ValidTypes[:]...)
 	}
 	return &cal{
 		debug:  debug,
