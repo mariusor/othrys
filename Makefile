@@ -6,7 +6,7 @@ GO := go
 ENV ?= dev
 LDFLAGS ?= -X main.version=$(VERSION)
 BUILDFLAGS ?= -a -ldflags '$(LDFLAGS)'
-APPSOURCES := $(wildcard internal/*/*.go cmd/*.go calendar/*.go calendar/*/*.go storage/*.go storage/*/*.go)
+APPSOURCES := $(wildcard internal/*/*.go cmd/*.go calendar/*.go calendar/*/*.go storage/*.go storage/*/*.go ical/*.go)
 PROJECT_NAME := $(shell basename $(PWD))
 
 ifneq ($(ENV), dev)

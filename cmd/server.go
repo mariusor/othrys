@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/mariusor/esports-calendar/ical"
 	"github.com/urfave/cli"
 	"net/http"
 	"os"
@@ -52,7 +53,7 @@ func serverStart(c *cli.Context) error {
 	defer cancel()
 
 	// Get start/stop functions for the http server
-	srvRun, srvStop := setupHttpServer(listen, nil, wait, ctx)
+	srvRun, srvStop := setupHttpServer(listen, ical.Routes(), wait, ctx)
 	go srvRun(err)
 
 	// Add signal handlers
