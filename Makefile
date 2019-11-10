@@ -23,13 +23,17 @@ endif
 BUILD := $(GO) build $(BUILDFLAGS)
 TEST := $(GO) test $(BUILDFLAGS)
 
-.PHONY: all ecalctl clean test coverage
+.PHONY: all ecalctl ecalserver clean test coverage
 
-all: ecalctl
+all: ecalctl ecalserver
 
 ecalctl: bin/ecalctl
 bin/ecalctl: go.mod cli/ecalctl/main.go $(APPSOURCES)
 	$(BUILD) -tags $(ENV) -o $@ ./cli/ecalctl/main.go
+
+ecalserver: bin/ecalserver
+bin/ecalserver: go.mod cli/ecalserver/main.go $(APPSOURCES)
+	$(BUILD) -tags $(ENV) -o $@ ./cli/ecalserver/main.go
 
 clean:
 	-$(RM) bin/*
