@@ -1,21 +1,24 @@
 package ical
 
 import (
-	"encoding/json"
+	"bytes"
 	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/mariusor/esports-calendar/calendar/liquid"
 	"github.com/mariusor/esports-calendar/calendar/plusforward"
 	"github.com/mariusor/esports-calendar/storage"
 	"github.com/mariusor/esports-calendar/storage/boltdb"
+	"github.com/soh335/ical"
 	"net/http"
 	"strings"
 	"time"
 )
 
-type ical struct{}
+type cal struct {
+	Version string
+}
 
-func (i ical) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (c cal) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	// /{type}/{year}/{month}/{day}
 	typ := strings.ToLower(chi.URLParam(r, "type"))
@@ -55,8 +58,54 @@ func (i ical) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	events, err := st.LoadEvents(storage.DateCursor{T: date, D: duration}, types...)
-	b, _ := json.Marshal(events)
 
-	w.Write(b)
+	cal := ical.NewBasicVCalendar()
+	cal.PRODID = "TL-CAL/v2.0"
+
+	cal.VERSION = c.Version
+	cal.URL = "https://calendar.littr.me/"
+
+	cal.NAME = "EsportsCalendar"
+	cal.X_WR_CALNAME = "EsportsCalendar"
+	cal.DESCRIPTION = "EsportsCalendar"
+	cal.X_WR_CALDESC = "EsportsCalendar"
+
+	cal.TIMEZONE_ID = "UTC"
+	cal.X_WR_TIMEZONE = "UTC"
+
+	cal.REFRESH_INTERVAL = "P1H"
+	cal.X_PUBLISHED_TTL = "P1H"
+
+	cal.COLOR = ""
+	cal.CALSCALE = "GREGORIAN"
+	cal.METHOD = "PUBLISH"
+	for _, ev := range events {
+		summary := ev.Stage
+		if ev.Category != "" {
+			summary = fmt.Sprintf("%s: %s", ev.Category, summary)
+		}
+
+		e := &ical.VEvent{
+			UID:         fmt.Sprintf("%d", ev.CalID),
+			DTSTAMP:     ev.LastModified,
+			DTSTART:     ev.StartTime,
+			DTEND:       ev.StartTime.Add(ev.Duration),
+			SUMMARY:     summary,
+			DESCRIPTION: ev.Content,
+			TZID:        "UTC",
+			AllDay:      ev.Duration > 24*time.Hour,
+		}
+		cal.VComponent = append(cal.VComponent, e)
+	}
+
+	b := &bytes.Buffer{}
+	err = cal.Encode(b)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(fmt.Sprintf("%s", err)))
+	}
+
+	w.Write(b.Bytes())
 	w.WriteHeader(http.StatusOK)
 }

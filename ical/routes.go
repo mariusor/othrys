@@ -9,15 +9,15 @@ import (
 func Routes() http.Handler {
 	r := chi.NewRouter()
 
-	i := ical{}
+	c := cal{}
 
 	r.Use(middleware.GetHead)
 	r.Use(middleware.Logger)
 
 	// http://calendar/starcraft/2015/
-	r.Get("/{type}/{year}", i.ServeHTTP)
+	r.Get("/{type}/{year}", c.ServeHTTP)
 	// http://calendar/starcraft/
-	r.Get("/{type}", i.ServeHTTP)
+	r.Get("/{type}", c.ServeHTTP)
 
 	r.Handle("/favicon.ico", nil)
 	r.NotFound(nil)
