@@ -107,13 +107,13 @@ func loadFromBucketRecursive(b *bolt.Bucket, min, max []byte) calendar.Events {
 
 	c := b.Cursor()
 
-	first := func () ([]byte, []byte) { return c.First() }
-	compare := func (k, v []byte) bool { return k != nil }
+	first := func() ([]byte, []byte) { return c.First() }
+	compare := func(k, v []byte) bool { return k != nil }
 	if min != nil {
-		first = func () ([]byte, []byte) { return c.Seek(min) }
+		first = func() ([]byte, []byte) { return c.Seek(min) }
 	}
 	if max != nil {
-		compare = func (k, v []byte) bool { return k != nil && bytes.Compare(k, max) <= 0 }
+		compare = func(k, v []byte) bool { return k != nil && bytes.Compare(k, max) <= 0 }
 	}
 	for key, raw := first(); compare(key, raw); key, raw = c.Next() {
 		if raw == nil {
@@ -176,7 +176,7 @@ func getCursorPaths(c storage.DateCursor, typ []byte) ([]byte, []byte) {
 	return min, max
 }
 
-func itemBucketPath( typ []byte, date time.Time) []byte {
+func itemBucketPath(typ []byte, date time.Time) []byte {
 	pathEl := make([][]byte, 0)
 
 	pathEl = append(pathEl, typ)

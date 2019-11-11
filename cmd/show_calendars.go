@@ -27,6 +27,7 @@ func showHelp() string {
 	h.WriteString(fmt.Sprintf("\tPlusForward: %s\n", strings.Join(plusforward.ValidTypes[:], ", ")))
 	return h.String()
 }
+
 func showCalendars(c *cli.Context) error {
 	fmt.Printf("%s\n", strings.Join(ValidTypes(), ", "))
 	return nil
