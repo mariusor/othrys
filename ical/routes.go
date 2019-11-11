@@ -8,10 +8,11 @@ import (
 
 func Routes() http.Handler {
 	r := chi.NewRouter()
-	
+
 	i := ical{}
-	
+
 	r.Use(middleware.GetHead)
+	r.Use(middleware.Logger)
 
 	// http://calendar/starcraft/2015/
 	r.Get("/{type}/{year}", i.ServeHTTP)

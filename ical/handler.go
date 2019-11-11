@@ -8,7 +8,6 @@ import (
 	"github.com/mariusor/esports-calendar/calendar/plusforward"
 	"github.com/mariusor/esports-calendar/storage"
 	"github.com/mariusor/esports-calendar/storage/boltdb"
-	"github.com/uniplaces/carbon"
 	"net/http"
 	"strings"
 	"time"
@@ -49,12 +48,10 @@ func (i ical) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		LogFn: nil,
 		ErrFn: nil,
 	})
-	var duration time.Duration = 0
+	// use one year
+	var duration time.Duration = 8759*time.Hour + 59*time.Minute + 59*time.Second
 	if !date.IsZero() {
-		start, _ := carbon.Create(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location().String())
-		end, _ := carbon.Create(date.Year(), date.Month(), date.Day(), 23, 59, 59, 0,date.Location().String())
-		end = end.AddYear()
-		duration = end.Sub(start.Time)
+		date = time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
 	}
 
 	events, err := st.LoadEvents(storage.DateCursor{T: date, D: duration}, types...)
