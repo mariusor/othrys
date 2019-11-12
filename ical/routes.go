@@ -15,7 +15,7 @@ func Routes() http.Handler {
 	r.Use(middleware.Logger)
 
 	// http://calendar/starcraft/2015/
-	r.Get("/{type}/{year}", c.ServeHTTP)
+	r.Get("/{year}/{type}", c.ServeHTTP)
 	// http://calendar/starcraft/
 	r.Get("/{type}", c.ServeHTTP)
 

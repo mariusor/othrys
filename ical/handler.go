@@ -76,10 +76,10 @@ var labels = map[string]string{
 
 func (c cal) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
-	// /{type}/{year}/{month}/{day}
-	typ := strings.ToLower(chi.URLParam(r, "type"))
 
+	typ := strings.ToLower(chi.URLParam(r, "type"))
 	yearURL := strings.ToLower(chi.URLParam(r, "year"))
+
 	if len(yearURL) == 0 {
 		yearURL = fmt.Sprintf("%4d", now.Year())
 	}
@@ -87,7 +87,7 @@ func (c cal) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	types := make([]string, 0)
 	if typ != "" {
-		if !liquid.ValidType(typ) || plusforward.ValidType(typ) {
+		if !(liquid.ValidType(typ) || plusforward.ValidType(typ)) {
 			// error wrong type
 			w.WriteHeader(http.StatusNotFound)
 			w.Write([]byte(fmt.Sprintf("Invalid type %s", typ)))
@@ -115,7 +115,7 @@ func (c cal) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	cal.PRODID = fmt.Sprintf("-//TL//ESPORTS-CAL//EN/%s", c.Version)
 
 	cal.VERSION = "2.0"
-	cal.URL = fmt.Sprintf("https://calendar.littr.me/%s/%d", typ, date.Year())
+	cal.URL = fmt.Sprintf("https://calendar.littr.me%s", r.URL.String())
 
 	name := "EsportsCalendar"
 	description := name
@@ -167,6 +167,7 @@ func (c cal) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(fmt.Sprintf("%s", err)))
 	}
 
+	w.Header().Set("Content-Type", "text/calendar; charset=utf-8")
 	w.Write(b.Bytes())
 	w.WriteHeader(http.StatusOK)
 }
