@@ -20,6 +20,7 @@ var (
 	defaultDuration  = time.Hour * 336                                                // 2 weeks
 	defaultStartTime = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 )
+
 var Fetch = cli.Command{
 	Name:  "fetch",
 	Usage: "Fetches calendar events",
@@ -39,7 +40,7 @@ var Fetch = cli.Command{
 		&cli.StringFlag{
 			Name:  "start",
 			Usage: "Date at which to start",
-			Value: now.Format("2006-01-02"),
+			Value: defaultStartTime.Format("2006-01-02"),
 		},
 		&cli.DurationFlag{
 			Name:  "end",

@@ -23,7 +23,7 @@ var List = cli.Command{
 		&cli.StringFlag{
 			Name:  "start",
 			Usage: "Date at which to start",
-			Value: now.Format("2006-01-02"),
+			Value: defaultStartTime.Format("2006-01-02"),
 		},
 		&cli.DurationFlag{
 			Name:  "end",
