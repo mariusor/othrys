@@ -19,6 +19,7 @@ func main() {
 			cmd.ShowTypes,
 			cmd.Fetch,
 			cmd.List,
+			cmd.Toot,
 		},
 	}
 
