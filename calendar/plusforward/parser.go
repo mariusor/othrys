@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+const defaultMatchDuration = 60 * time.Minute
+
 func loadOngoingEvent(e *event, s *goquery.Selection) {
 	e.MatchCount = 1
 	e.Type = LabelUnknown
@@ -128,7 +130,7 @@ func loadSubEvents(ev *event, s *goquery.Selection) events {
 			strTime := s.Find("div.cal_time").Text()
 			if evTime, err := time.Parse("15:04", strTime); err == nil {
 				e.StartTime = time.Date(day.Year(), day.Month(), day.Day(), evTime.Hour(), evTime.Minute(), 0, 0, day.Location())
-				e.Duration = 45 * time.Minute
+				e.Duration = defaultMatchDuration
 				ev.Duration += e.Duration
 			}
 			if e.isValid() {

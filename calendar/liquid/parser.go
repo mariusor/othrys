@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+const defaultMatchDuration = 45 * time.Minute
+
 func LoadEvents(url *url.URL, date time.Time) (events, error) {
 	if url == nil {
 		return nil, fmt.Errorf("nil URL received")
@@ -82,7 +84,7 @@ func loadEvent(e *event, date time.Time, s *goquery.Selection) {
 		}
 		e.StartTime = time.Date(date.Year(), date.Month(), date.Day(), evTime.Hour(), evTime.Minute(), 0, 0, date.Location())
 	})
-	e.Duration = 45 * time.Minute * time.Duration(e.MatchCount)
+	e.Duration = time.Duration(e.MatchCount) * defaultMatchDuration
 	s.Find("div.ev-stage").Each(func(i int, s *goquery.Selection) {
 		e.Stage = s.Text()
 	})
