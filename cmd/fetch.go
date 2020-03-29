@@ -3,21 +3,16 @@ package cmd
 import (
 	"fmt"
 	"github.com/mariusor/esports-calendar/calendar"
-	"github.com/mariusor/esports-calendar/calendar/liquid"
-	"github.com/mariusor/esports-calendar/calendar/plusforward"
 	"github.com/mariusor/esports-calendar/storage/boltdb"
 	"github.com/urfave/cli"
-	"net/url"
 	"os"
-	"strings"
 	"time"
 )
 
 var now = time.Now()
 
 var (
-	defaultCalendars = []string{liquid.LabelTeamLiquid, plusforward.LabelPlusForward} // all
-	defaultDuration  = time.Hour * 336                                                // 2 weeks
+	defaultDuration  = time.Hour * 336 // 2 weeks
 	defaultStartTime = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 )
 
@@ -68,54 +63,18 @@ func New(debug bool, types ...string) (*cal, error) {
 		fmt.Fprintf(os.Stderr, s, args...)
 		fmt.Fprintln(os.Stderr)
 	}
-	valTypes := ValidTypes()
-	rem := make([]int, 0)
-	for i, typ := range types {
-		valid := false
-		for _, valTyp := range valTypes {
-			if strings.ToLower(typ) == strings.ToLower(valTyp) {
-				valid = true
-				break
-			}
-		}
-		if !valid {
-			errFn("invalid type %s", typ)
-			rem = append(rem, i)
-		}
-	}
-	for i := len(rem) - 1; i >= 0; i-- {
-		types = append(types[:i], types[i+1:]...)
-	}
-	if len(types) == 0 {
-		types = append(types, plusforward.ValidTypes[:]...)
-		types = append(types, liquid.ValidTypes[:]...)
-	}
 	return &cal{
 		debug:  debug,
-		types:  types,
+		types:  calendar.GetTypes(types),
 		weekly: true,
 		log:    logFn,
 		err:    errFn,
 	}, nil
 }
 
-func ValidTypes() []string {
-	types := make([]string, 0)
-	types = append(types, liquid.LabelTeamLiquid)
-	for _, typ := range liquid.ValidTypes {
-		types = append(types, typ)
-	}
-	types = append(types, plusforward.LabelPlusForward)
-	for _, typ := range plusforward.ValidTypes {
-		types = append(types, typ)
-	}
-	return types
-}
-
 type logFn func(string, ...interface{})
 
 type toLoad struct {
-	u *url.URL
 	d time.Time
 	t string
 }
@@ -125,49 +84,27 @@ func (c cal) Load(startDate time.Time) (calendar.Events, error) {
 	urls := make([]toLoad, 0)
 	date := startDate
 	for _, typ := range c.types {
-		if plusforward.ValidType(typ) {
-			url, err := plusforward.GetCalendarURL(date, typ, true)
-			if err != nil {
-				c.err("unable to get calendar URI for %s: %s", typ, err)
-				continue
-			}
-			urls = append(urls, toLoad{u: url, d: date, t: typ})
+		if err != nil {
+			c.err("unable to get calendar URI for %s: %s", typ, err)
+			continue
 		}
-		if liquid.ValidType(typ) {
-			url, err := liquid.GetCalendarURL(date, typ, true)
-			if err != nil {
-				c.err("unable to get calendar URI for %s: %s", typ, err)
-				continue
-			}
-			urls = append(urls, toLoad{u: url, d: date, t: typ})
-		}
+		urls = append(urls, toLoad{d: date, t: typ})
 	}
 
 	for _, l := range urls {
 		if c.debug {
-			c.log("[%s] %s", l.t, l.u)
+			u, _ := calendar.GetCalendarURL(l.t, l.d, c.weekly)
+			c.log("[%s] %s", l.t, u)
 		}
-		if plusforward.ValidType(l.t) {
-			ev, err := plusforward.LoadEvents(l.u, l.d)
-			if err != nil {
-				c.err("Unable to parse page URI %s: %s", l.u, err)
-				continue
-			}
-			events = append(events, ev...)
-			if c.debug {
-				c.log("%d events", len(ev))
-			}
+		ev, err := calendar.LoadEvents(l.t, l.d)
+		if err != nil {
+			u, _ := calendar.GetCalendarURL(l.t, l.d, c.weekly)
+			c.err("Unable to parse page URI %s: %s", u, err)
+			continue
 		}
-		if liquid.ValidType(l.t) {
-			ev, err := liquid.LoadEvents(l.u, l.d)
-			if err != nil {
-				c.err("Unable to parse page URI %s: %s", l.u, err)
-				continue
-			}
-			events = append(events, ev...)
-			if c.debug {
-				c.log("%d events", len(ev))
-			}
+		events = append(events, ev...)
+		if c.debug {
+			c.log("%d events", len(ev))
 		}
 	}
 

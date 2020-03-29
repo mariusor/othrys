@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/mariusor/esports-calendar/calendar"
 	"github.com/mariusor/esports-calendar/storage"
 	"github.com/mariusor/esports-calendar/storage/boltdb"
 	"github.com/urfave/cli"
@@ -45,6 +46,7 @@ func listCalendars(c *cli.Context) error {
 	}
 	duration := c.Duration("end")
 
+	types = calendar.GetTypes(types)
 	f, err := New(true, types...)
 	if err != nil {
 		return err

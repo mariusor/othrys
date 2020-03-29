@@ -18,8 +18,7 @@ func Cursor(st time.Time, d time.Duration) DateCursor {
 }
 
 type Saver interface {
-	SaveEvents(calendar.Events) error
-	SaveEvent(calendar.Event) error
+	SaveEvents(...calendar.Events) error
 }
 
 type Loader interface {

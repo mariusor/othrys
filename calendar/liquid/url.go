@@ -110,7 +110,7 @@ func getQuery(typ string, date time.Time, by string) url.Values {
 	return q
 }
 
-func GetEventURL(date time.Time, typ string, byWeek bool) (*url.URL, error) {
+func GetEventURL(typ string, date time.Time, byWeek bool) (*url.URL, error) {
 	if !ValidType(typ) {
 		return nil, fmt.Errorf("invalid type: %s", typ)
 	}
@@ -139,7 +139,7 @@ func GetEventURL(date time.Time, typ string, byWeek bool) (*url.URL, error) {
 	return u, nil
 }
 
-func GetCalendarURL(date time.Time, typ string, byWeek bool) (*url.URL, error) {
+func GetCalendarURL(typ string, date time.Time, byWeek bool) (*url.URL, error) {
 	if !ValidType(typ) {
 		return nil, fmt.Errorf("invalid type: %s", typ)
 	}

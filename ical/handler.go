@@ -3,13 +3,14 @@ package ical
 import (
 	"bytes"
 	"fmt"
-	"github.com/go-chi/chi"
-	"github.com/mariusor/esports-calendar/calendar/liquid"
-	"github.com/mariusor/esports-calendar/calendar/plusforward"
+	"github.com/mariusor/esports-calendar/calendar"
 	"github.com/mariusor/esports-calendar/storage"
 	"github.com/mariusor/esports-calendar/storage/boltdb"
 	"github.com/soh335/ical"
 	"net/http"
+	"net/url"
+	"path"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -18,83 +19,29 @@ type cal struct {
 	Version string
 }
 
-var colors = map[string]string{
-	liquid.LabelSC2:                 "99:99:99",
-	liquid.LabelSCRemastered:        "99:99:99",
-	liquid.LabelBW:                  "99:99:99",
-	liquid.LabelCSGO:                "99:99:99",
-	liquid.LabelHOTS:                "99:99:99",
-	liquid.LabelSmash:               "99:99:99",
-	liquid.LabelHearthstone:         "99:99:99",
-	liquid.LabelDota:                "99:99:99",
-	liquid.LabelLOL:                 "99:99:99",
-	liquid.LabelOverwatch:           "99:99:99",
-	plusforward.LabelQuakeLive:      "99:99:99",
-	plusforward.LabelQuakeIV:        "99:99:99",
-	plusforward.LabelQuakeIII:       "99:99:99",
-	plusforward.LabelQuakeII:        "99:99:99",
-	plusforward.LabelQuakeWorld:     "99:99:99",
-	plusforward.LabelDiabotical:     "99:99:99",
-	plusforward.LabelDoom:           "99:99:99",
-	plusforward.LabelReflex:         "99:99:99",
-	plusforward.LabelGG:             "99:99:99",
-	plusforward.LabelUnreal:         "99:99:99",
-	plusforward.LabelWarsow:         "99:99:99",
-	plusforward.LabelDbmb:           "99:99:99",
-	plusforward.LabelXonotic:        "99:99:99",
-	plusforward.LabelQuakeChampions: "99:99:99",
-	plusforward.LabelQuakeCPMA:      "99:99:99",
-}
+func NewHandler() *cal { return new(cal) }
 
-var labels = map[string]string{
-	liquid.LabelSC2:                 "StarCraft 2",
-	liquid.LabelSCRemastered:        "StarCraft Remastered",
-	liquid.LabelBW:                  "BroodWar",
-	liquid.LabelCSGO:                "Counterstrike: Go",
-	liquid.LabelHOTS:                "Heroes of the Storm",
-	liquid.LabelSmash:               "Smash",
-	liquid.LabelHearthstone:         "Hearthstone",
-	liquid.LabelDota:                "DotA",
-	liquid.LabelLOL:                 "League of Legends",
-	liquid.LabelOverwatch:           "Overwatch",
-	plusforward.LabelQuakeLive:      "Quake Live",
-	plusforward.LabelQuakeIV:        "Quake IV",
-	plusforward.LabelQuakeIII:       "Quake III",
-	plusforward.LabelQuakeII:        "Quake II",
-	plusforward.LabelQuakeWorld:     "Quake World",
-	plusforward.LabelDiabotical:     "Diabotical",
-	plusforward.LabelDoom:           "DOOM",
-	plusforward.LabelReflex:         "Reflex",
-	plusforward.LabelGG:             "GG",
-	plusforward.LabelUnreal:         "Unreal",
-	plusforward.LabelWarsow:         "Warsow",
-	plusforward.LabelDbmb:           "DBMB",
-	plusforward.LabelXonotic:        "Xonotic",
-	plusforward.LabelQuakeChampions: "Quake Champions",
-	plusforward.LabelQuakeCPMA:      "Quake CPMA",
-}
-
-func (c cal) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	now := time.Now()
-
-	typ := strings.ToLower(chi.URLParam(r, "type"))
-	yearURL := strings.ToLower(chi.URLParam(r, "year"))
-
-	if len(yearURL) == 0 {
-		yearURL = fmt.Sprintf("%4d", now.Year())
+func parsePath (u *url.URL) ([]string, int) {
+	year := int64(time.Now().Year())
+	if u == nil {
+		return calendar.GetTypes(nil), int(year)
 	}
-	dateURL := fmt.Sprintf("%s-01-01 00:00:00", yearURL)
-
+	p := u.Path
 	types := make([]string, 0)
-	if typ != "" {
-		if !(liquid.ValidType(typ) || plusforward.ValidType(typ)) {
-			// error wrong type
-			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte(fmt.Sprintf("Invalid type %s", typ)))
-			return
-		}
-		types = append(types, typ)
-	}
+	
+	yearS, typesS := path.Split(p)
+	year, _ = strconv.ParseInt(strings.Replace(yearS, "/", "", -1), 10, 32)
+	
+	maybeTypes := strings.Split(typesS, "+")
+	types = calendar.GetTypes(maybeTypes)
+
+	return types, int(year)
+}
+
+func (c *cal) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	types, yearURL := parsePath(r.URL)
+	dateURL := fmt.Sprintf("%d-01-01 00:00:00", yearURL)
+
 	var date time.Time
 	var err error
 	date, _ = time.Parse("2006-01-02 15:04:05", dateURL)
@@ -104,7 +51,7 @@ func (c cal) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ErrFn: nil,
 	})
 	// use one year
-	var duration time.Duration = 8759*time.Hour + 59*time.Minute + 59*time.Second
+	duration := 8759*time.Hour + 59*time.Minute + 59*time.Second
 	if !date.IsZero() {
 		date = time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
 	}
@@ -122,8 +69,17 @@ func (c cal) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	cal.NAME = name
 	cal.X_WR_CALNAME = name
-	if label, ok := labels[typ]; ok {
-		description = fmt.Sprintf("EsportsCalendar, events for %s", label)
+	lbls := make([]string, 0)
+	for _, typ := range types {
+		if label, ok := calendar.Labels[typ]; ok {
+			lbls = append(lbls, label)
+		}
+		if col, ok := calendar.Colors[typ]; ok {
+			cal.COLOR = col
+		}
+	}
+	if len(lbls) > 0 {
+		description = fmt.Sprintf("EsportsCalendar, events for %s", strings.Join(lbls, ", "))
 	}
 	cal.DESCRIPTION = description
 	cal.X_WR_CALDESC = description
@@ -135,9 +91,6 @@ func (c cal) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	cal.REFRESH_INTERVAL = "PT1H"
 	cal.X_PUBLISHED_TTL = "PT1H"
 
-	if col, ok := colors[typ]; ok {
-		cal.COLOR = col
-	}
 	cal.CALSCALE = "GREGORIAN"
 	cal.METHOD = "PUBLISH"
 	for _, ev := range events {

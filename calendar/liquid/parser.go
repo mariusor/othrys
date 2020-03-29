@@ -3,7 +3,6 @@ package liquid
 import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/mariusor/esports-calendar/calendar"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -12,7 +11,7 @@ import (
 	"time"
 )
 
-func LoadEvents(url *url.URL, date time.Time) (calendar.Events, error) {
+func LoadEvents(url *url.URL, date time.Time) (events, error) {
 	if url == nil {
 		return nil, fmt.Errorf("nil URL received")
 	}
@@ -25,7 +24,7 @@ func LoadEvents(url *url.URL, date time.Time) (calendar.Events, error) {
 		return nil, fmt.Errorf("status code error: %d %s", res.StatusCode, res.Status)
 	}
 
-	events := make(calendar.Events, 0)
+	events := make(events, 0)
 	// Load the HTML document
 	doc, err := goquery.NewDocumentFromReader(res.Body)
 	if err != nil {
@@ -42,9 +41,9 @@ func LoadEvents(url *url.URL, date time.Time) (calendar.Events, error) {
 		}
 
 		s.Find("div.ev-block").Each(func(i int, s *goquery.Selection) {
-			ev := calendar.Event{}
+			ev := event{}
 			loadEvent(&ev, day, s)
-			if ev.IsValid() && !events.Contains(ev) {
+			if ev.isValid() && !events.contains(ev) {
 				events = append(events, ev)
 			}
 		})
@@ -55,7 +54,7 @@ func LoadEvents(url *url.URL, date time.Time) (calendar.Events, error) {
 
 const calID = 100000000
 
-func loadEvent(e *calendar.Event, date time.Time, s *goquery.Selection) {
+func loadEvent(e *event, date time.Time, s *goquery.Selection) {
 	e.MatchCount = 1
 	e.Category = LabelUnknown
 	s.Find("div.ev-match").Each(func(i int, s *goquery.Selection) {

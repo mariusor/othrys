@@ -3,7 +3,6 @@ package plusforward
 import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/mariusor/esports-calendar/calendar"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -12,64 +11,7 @@ import (
 	"time"
 )
 
-func LoadEvents(url *url.URL, date time.Time) (calendar.Events, error) {
-	if url == nil {
-		return nil, fmt.Errorf("nil URL received")
-	}
-	res, err := http.Get(url.String())
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-	if res.StatusCode != 200 {
-		return nil, fmt.Errorf("status code error: %d %s", res.StatusCode, res.Status)
-	}
-	events := make(calendar.Events, 0)
-	// Load the HTML document
-	doc, err := goquery.NewDocumentFromReader(res.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	// Find the review items
-	doc.Find("td.cal_day").Each(func(i int, s *goquery.Selection) {
-		cnt := len(s.Nodes)
-		fmt.Sprintf("%d\n", cnt)
-		var day time.Time
-		dateVal := s.Find("div.cal_date").Text()
-		if wdmv, err := time.Parse("MondayJanuary _2", dateVal); err == nil {
-			day = time.Date(date.Year(), date.Month(), wdmv.Day(), date.Hour(), date.Minute(), date.Second(), 0, date.Location())
-		} else if wdv, err := time.Parse("Monday _2", dateVal); err == nil {
-			day = time.Date(date.Year(), date.Month(), wdv.Day(), date.Hour(), date.Minute(), date.Second(), 0, date.Location())
-		} else {
-			day = date
-		}
-		// regular events
-		s.Find("div.cal_event").Each(func(i int, s *goquery.Selection) {
-			ev := calendar.Event{}
-			loadEvent(&ev, day, s)
-			subEv := loadSubEvents(&ev, s)
-			if len(subEv) > 0 {
-				events = append(events, subEv...)
-			}
-			if ev.IsValid() && !events.Contains(ev) {
-				events = append(events, ev)
-			}
-		})
-		// full day events
-		s.Find("a.cal_event").Each(func(i int, s *goquery.Selection) {
-			ev := calendar.Event{}
-			loadOngoingEvent(&ev, s)
-			if ev.IsValid() && !events.Contains(ev) {
-				events = append(events, ev)
-			}
-		})
-	})
-
-	return events, nil
-}
-
-func loadOngoingEvent(e *calendar.Event, s *goquery.Selection) {
+func loadOngoingEvent(e *event, s *goquery.Selection) {
 	e.MatchCount = 1
 	e.Type = LabelUnknown
 	//category_div = event_block.find("div", class_="cal_e_title")
@@ -100,8 +42,65 @@ func loadOngoingEvent(e *calendar.Event, s *goquery.Selection) {
 	e.Category = s.Find("div.cal_title").Text()
 }
 
-func loadSubEvents (ev *calendar.Event, s *goquery.Selection) calendar.Events {
-	events := make(calendar.Events, 0)
+func LoadEvents(url *url.URL, date time.Time) (events, error) {
+	if url == nil {
+		return nil, fmt.Errorf("nil URL received")
+	}
+	res, err := http.Get(url.String())
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	if res.StatusCode != 200 {
+		return nil, fmt.Errorf("status code error: %d %s", res.StatusCode, res.Status)
+	}
+	events := make(events, 0)
+	// Load the HTML document
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	// Find the review items
+	doc.Find("td.cal_day").Each(func(i int, s *goquery.Selection) {
+		cnt := len(s.Nodes)
+		fmt.Sprintf("%d\n", cnt)
+		var day time.Time
+		dateVal := s.Find("div.cal_date").Text()
+		if wdmv, err := time.Parse("MondayJanuary _2", dateVal); err == nil {
+			day = time.Date(date.Year(), date.Month(), wdmv.Day(), date.Hour(), date.Minute(), date.Second(), 0, date.Location())
+		} else if wdv, err := time.Parse("Monday _2", dateVal); err == nil {
+			day = time.Date(date.Year(), date.Month(), wdv.Day(), date.Hour(), date.Minute(), date.Second(), 0, date.Location())
+		} else {
+			day = date
+		}
+		// regular events
+		s.Find("div.cal_event").Each(func(i int, s *goquery.Selection) {
+			ev := event{}
+			loadEvent(&ev, day, s)
+			subEv := loadSubEvents(&ev, s)
+			if len(subEv) > 0 {
+				events = append(events, subEv...)
+			}
+			if ev.isValid() && !events.contains(ev) {
+				events = append(events, ev)
+			}
+		})
+		// full day events
+		s.Find("a.cal_event").Each(func(i int, s *goquery.Selection) {
+			ev := event{}
+			loadOngoingEvent(&ev, s)
+			if ev.isValid() && !events.contains(ev) {
+				events = append(events, ev)
+			}
+		})
+	})
+
+	return events, nil
+}
+
+func loadSubEvents(ev *event, s *goquery.Selection) events {
+	events := make(events, 0)
 	matches := make([]string, 0)
 	//matches_container_div = event_block.find("div", class_="cal_matches")
 	s.Find("div.cal_matches").Each(func(i int, s *goquery.Selection) {
@@ -110,10 +109,10 @@ func loadSubEvents (ev *calendar.Event, s *goquery.Selection) calendar.Events {
 		ev.Duration = 0
 		s.Find("div.cal_match").Each(func(i int, s *goquery.Selection) {
 			// matches
-			e := calendar.Event{
-				Type:         ev.Type,
-				Stage:        ev.Category,
-				MatchCount:   1,
+			e := event{
+				Type:       ev.Type,
+				Stage:      ev.Category,
+				MatchCount: 1,
 			}
 			perTypID := calID / 200 * int64(calendarType[e.Type])
 			s.Find("div.cal_title").Each(func(i int, s *goquery.Selection) {
@@ -132,14 +131,14 @@ func loadSubEvents (ev *calendar.Event, s *goquery.Selection) calendar.Events {
 				e.Duration = 45 * time.Minute
 				ev.Duration += e.Duration
 			}
-			if e.IsValid() {
+			if e.isValid() {
 				events = append(events, e)
 			}
 		})
 	})
-	cnt :=  len(events)
+	cnt := len(events)
 	if cnt > 0 {
-		first :=events[0]
+		first := events[0]
 		last := events[cnt-1]
 		ev.StartTime = first.StartTime
 		ev.Duration = last.StartTime.Add(last.Duration).Sub(first.StartTime)
@@ -149,7 +148,7 @@ func loadSubEvents (ev *calendar.Event, s *goquery.Selection) calendar.Events {
 	return events
 }
 
-func loadEvent(e *calendar.Event, date time.Time, s *goquery.Selection) {
+func loadEvent(e *event, date time.Time, s *goquery.Selection) {
 	e.MatchCount = 1
 	e.Type = LabelUnknown
 	e.StartTime = date
@@ -178,6 +177,7 @@ func loadEvent(e *calendar.Event, date time.Time, s *goquery.Selection) {
 }
 
 const calID = 200000000
+
 func getCalIDFromHref(href string) int64 {
 	r := regexp.MustCompile(`post/(\d+)`)
 	m := r.FindSubmatch([]byte(href))
