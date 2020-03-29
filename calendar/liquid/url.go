@@ -43,6 +43,7 @@ var baseURIs = map[string]string{
 	LabelHearthstone: "http://www.liquidhearth.com",
 	LabelDota:        "http://www.liquiddota.com",
 	LabelLOL:         "http://www.liquidlegends.net",
+	LabelOverwatch:   "http://www.teamliquid.net",
 }
 
 var calendarPath = map[string]string{
@@ -55,6 +56,7 @@ var calendarPath = map[string]string{
 	LabelHearthstone: "/calendar/",
 	LabelDota:        "/calendar/",
 	LabelLOL:         "/calendar/",
+	LabelOverwatch:   "/calendar/",
 }
 
 var eventPath = map[string]string{
@@ -67,6 +69,7 @@ var eventPath = map[string]string{
 	LabelHearthstone: "/calendar/manage",
 	LabelDota:        "/calendar/manage",
 	LabelLOL:         "/calendar/manage",
+	LabelOverwatch:   "/calendar/manage",
 }
 var calendarType = map[string]int{
 	LabelUnknown:   0,
@@ -141,7 +144,7 @@ func GetEventURL(typ string, date time.Time, byWeek bool) (*url.URL, error) {
 
 func GetCalendarURL(typ string, date time.Time, byWeek bool) (*url.URL, error) {
 	if !ValidType(typ) {
-		return nil, fmt.Errorf("invalid type: %s", typ)
+		return nil, fmt.Errorf("invalid type: TL:%s", typ)
 	}
 	base, ok := baseURIs[typ]
 	if !ok {

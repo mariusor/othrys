@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/mariusor/esports-calendar/calendar/liquid"
 	"github.com/mariusor/esports-calendar/calendar/plusforward"
-	"net/url"
 	"sort"
 	"strings"
 	"time"
@@ -199,37 +198,46 @@ var Labels = map[string]string{
 	plusforward.LabelQuakeCPMA:      "Quake CPMA",
 }
 
-func GetCalendarURL(typ string, date time.Time, byWeek bool) (*url.URL, error) {
-	if plusforward.ValidType(typ) {
-		return plusforward.GetCalendarURL( typ, date,byWeek)
-	}
-	if liquid.ValidType(typ) {
-		return liquid.GetCalendarURL(typ, date, byWeek)
-	}
-	return nil, fmt.Errorf("invalid type %s", typ)
-}
-
 func LoadEvents(typ string, date time.Time) (Events, error) {
+	var err error
+	valid := false
+
 	events := make(Events, 0)
 	if plusforward.ValidType(typ) {
-		u, _ := plusforward.GetCalendarURL(typ, date, false)
-		e, err := plusforward.LoadEvents(u, date)
-		if err != nil {
-			return nil, err
-		}
-		for _, ev := range e {
-			events = append(events, *(*Event)(&ev))
+		valid = true
+		u, err1 := plusforward.GetCalendarURL(typ, date, false)
+		if err1 != nil {
+			err = err1
+		} else {
+			e, err2 := plusforward.LoadEvents(u, date)
+			if err2 != nil {
+				err = err2
+			}
+			for _, ev := range e {
+				events = append(events, *(*Event)(&ev))
+			}
 		}
 	}
 	if liquid.ValidType(typ) {
-		u, _ := liquid.GetCalendarURL(typ, date, false)
-		e, err := liquid.LoadEvents(u, date)
-		if err != nil {
-			return nil, err
-		}
-		for _, ev := range e {
-			events = append(events, *(*Event)(&ev))
+		valid = true
+		u, err1 := liquid.GetCalendarURL(typ, date, false)
+		if err1 != nil {
+			err = err1
+		} else {
+			e, err2 := liquid.LoadEvents(u, date)
+			if err2 != nil {
+				err = err2
+			}
+			for _, ev := range e {
+				events = append(events, *(*Event)(&ev))
+			}
 		}
 	}
-	return nil, fmt.Errorf("invalid type %s", typ)
+	if err != nil {
+		return events, err
+	}
+	if !valid {
+		err = fmt.Errorf("invalid type %s", typ)
+	}
+	return events, err
 }

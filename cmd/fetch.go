@@ -84,22 +84,17 @@ func (c cal) Load(startDate time.Time) (calendar.Events, error) {
 	urls := make([]toLoad, 0)
 	date := startDate
 	for _, typ := range c.types {
-		if err != nil {
-			c.err("unable to get calendar URI for %s: %s", typ, err)
-			continue
-		}
 		urls = append(urls, toLoad{d: date, t: typ})
 	}
 
 	for _, l := range urls {
 		if c.debug {
-			u, _ := calendar.GetCalendarURL(l.t, l.d, c.weekly)
-			c.log("[%s] %s", l.t, u)
+			c.log("Loading [%s]", l.t)
 		}
 		ev, err := calendar.LoadEvents(l.t, l.d)
 		if err != nil {
-			u, _ := calendar.GetCalendarURL(l.t, l.d, c.weekly)
-			c.err("Unable to parse page URI %s: %s", u, err)
+			//u, _ := calendar.GetCalendarURL(l.t, l.d, c.weekly)
+			c.err("Unable to parse page URI for type %s: %s", l.t, err)
 			continue
 		}
 		events = append(events, ev...)

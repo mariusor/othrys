@@ -181,7 +181,7 @@ func GetEventURL(typ string, date time.Time, byWeek bool) (*url.URL, error) {
 
 func GetCalendarURL(typ string, date time.Time, byWeek bool) (*url.URL, error) {
 	if !ValidType(typ) {
-		return nil, fmt.Errorf("invalid type: %s", typ)
+		return nil, fmt.Errorf("invalid type: PF:%s", typ)
 	}
 	base, ok := baseURIs[typ]
 	if !ok {
