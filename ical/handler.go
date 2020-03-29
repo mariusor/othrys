@@ -9,7 +9,6 @@ import (
 	"github.com/soh335/ical"
 	"net/http"
 	"net/url"
-	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -21,20 +20,36 @@ type cal struct {
 
 func NewHandler() *cal { return new(cal) }
 
-func parsePath (u *url.URL) ([]string, int) {
+func parsePath(u *url.URL) ([]string, int) {
 	year := int64(time.Now().Year())
 	if u == nil {
-		return calendar.GetTypes(nil), int(year)
+		return calendar.DefaultCalendars, int(year)
 	}
 	p := u.Path
 	types := make([]string, 0)
-	
-	yearS, typesS := path.Split(p)
-	year, _ = strconv.ParseInt(strings.Replace(yearS, "/", "", -1), 10, 32)
-	
-	maybeTypes := strings.Split(typesS, "+")
-	types = calendar.GetTypes(maybeTypes)
-
+	pieces := strings.Split(p, "/")[1:]
+	if len(pieces) == 0 {
+		return calendar.DefaultCalendars, int(year)
+	}
+	var typesS string
+	if len(pieces) == 1 {
+		if maybeYear, err := strconv.ParseInt(strings.Replace(pieces[0], "/", "", -1), 10, 32); err == nil {
+			year = maybeYear
+			types = calendar.DefaultCalendars
+		} else {
+			typesS = pieces[0]
+		}
+	}
+	if len(pieces) > 1 {
+		if maybeYear, err := strconv.ParseInt(strings.Replace(pieces[len(pieces) - 2], "/", "", -1), 10, 32); err == nil {
+			year = maybeYear
+		}
+		typesS = pieces[len(pieces) - 1]
+	}
+	if len(typesS) > 0 {
+		types = strings.Split(typesS, "+")
+	}
+	types = calendar.GetTypes(types)
 	return types, int(year)
 }
 
@@ -119,8 +134,7 @@ func (c *cal) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(fmt.Sprintf("%s", err)))
 	}
-
+	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "text/calendar; charset=utf-8")
 	w.Write(b.Bytes())
-	w.WriteHeader(http.StatusOK)
 }
