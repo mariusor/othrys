@@ -7,7 +7,7 @@ ENV ?= dev
 LDFLAGS ?= -X main.version=$(VERSION)
 BUILDFLAGS ?= -a -ldflags '$(LDFLAGS)'
 APPSOURCES := $(wildcard internal/*/*.go cmd/*.go calendar/*.go calendar/*/*.go storage/*.go storage/*/*.go ical/*.go)
-PROJECT_NAME := $(shell basename $(PWD))
+PROJECT_NAME := $(shell basename `pwd`)
 CALENDARS ?= "tl pfw"
 
 M4 = /usr/bin/m4
@@ -47,8 +47,8 @@ bin/ecalserver: go.mod cli/ecalserver/main.go $(APPSOURCES)
 	$(BUILD) -tags $(ENV) -o $@ ./cli/ecalserver/main.go
 
 clean:
-	-$(RM) bin/*
-	-$(RM) units/*.service
+	$(RM) bin/*
+	$(RM) units/*.service
 
 test: TEST_TARGET := ./...
 test:
@@ -69,16 +69,21 @@ units/ecalserver.service: units/ecalserver.service.in
 
 install: units ecalctl ecalserver
 	test -d $(DESTDIR)$(INSTALL_PREFIX)$(USERUNITDIR)/ || mkdir -p $(DESTDIR)$(INSTALL_PREFIX)$(USERUNITDIR)/
+	test -d $(DATA_DIR)/ || mkdir -p $(DATA_DIR)/
 
-	cp units/ecalevents.service $(DESTDIR)$(INSTALL_PREFIX)$(USERUNITDIR)/
-	cp units/ecalevents.timer $(DESTDIR)$(INSTALL_PREFIX)$(USERUNITDIR)/
-	cp units/ecalserver.service $(DESTDIR)$(INSTALL_PREFIX)$(USERUNITDIR)/
-	#cp units/ecaltooter.service $(DESTDIR)$(INSTALL_PREFIX)$(USERUNITDIR)/
-	#cp units/ecaltooter.timer $(DESTDIR)$(INSTALL_PREFIX)$(USERUNITDIR)/
+	install ./bin/ecalctl $(BIN_DIR)
+	install ./bin/ecalserver $(BIN_DIR)
+	install -m 644 units/ecalevents.service $(DESTDIR)$(INSTALL_PREFIX)$(USERUNITDIR)/
+	install -m 644 units/ecalevents.timer $(DESTDIR)$(INSTALL_PREFIX)$(USERUNITDIR)/
+	install -m 644 units/ecalserver.service $(DESTDIR)$(INSTALL_PREFIX)$(USERUNITDIR)/
+	#install -m 644 units/ecaltooter.service $(DESTDIR)$(INSTALL_PREFIX)$(USERUNITDIR)/
+	#install -m 644 units/ecaltooter.timer $(DESTDIR)$(INSTALL_PREFIX)$(USERUNITDIR)/
 
 uninstall:
+	$(RM) $(BIN_DIR)/ecalctl
+	$(RM) $(BIN_DIR)/ecalserver
 	$(RM) $(DESTDIR)$(INSTALL_PREFIX)$(USERUNITDIR)/ecalevents.service
 	$(RM) $(DESTDIR)$(INSTALL_PREFIX)$(USERUNITDIR)/ecalevents.timer
 	$(RM) $(DESTDIR)$(INSTALL_PREFIX)$(USERUNITDIR)/ecalserver.service
-	#$(RM) $(DESTDIR)$(INSTALL_PREFIX)$(USERUNITDIR)/ecaltooter.service
-	#$(RM) $(DESTDIR)$(INSTALL_PREFIX)$(USERUNITDIR)/ecaltooter.timer
+	-#$(RM) $(DESTDIR)$(INSTALL_PREFIX)$(USERUNITDIR)/ecaltooter.service
+	-#$(RM) $(DESTDIR)$(INSTALL_PREFIX)$(USERUNITDIR)/ecaltooter.timer
