@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -17,9 +19,14 @@ import (
 
 type cal struct {
 	Version string
+	Path    string
 }
 
-func NewHandler() *cal { return new(cal) }
+func NewHandler(p string) *cal {
+	c := new(cal)
+	c.Path, _ = filepath.Abs(path.Clean(p))
+	return c
+}
 
 func parsePath(u *url.URL) ([]string, int) {
 	year := int64(time.Now().Year())
@@ -62,7 +69,7 @@ func (c *cal) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
 	date, _ = time.Parse("2006-01-02 15:04:05", dateURL)
 	st := boltdb.New(boltdb.Config{
-		Path:  "./calendar.bdb",
+		Path:  path.Join(c.Path, "calendar.bdb"),
 		LogFn: nil,
 		ErrFn: nil,
 	})

@@ -30,6 +30,11 @@ var Server = cli.Command{
 			Usage: "Set hostname on which to listen to",
 			Value: 9999,
 		},
+		&cli.StringFlag{
+			Name:  "storage",
+			Usage: "Set storage path",
+			Value: "./",
+		},
 	},
 	Action: serverStart,
 }
@@ -52,8 +57,9 @@ func serverStart(c *cli.Context) error {
 	ctx, cancel := context.WithTimeout(context.Background(), wait)
 	defer cancel()
 
+	path := c.String("path")
 	// Get start/stop functions for the http server
-	srvRun, srvStop := w.HttpServer(ctx, w.Handler(ical.Routes()), w.ListenOn(listen))
+	srvRun, srvStop := w.HttpServer(ctx, w.Handler(ical.Routes(path)), w.ListenOn(listen))
 	w.RegisterSignalHandlers(w.SignalHandlers{
 		syscall.SIGHUP: func(_ chan int) {
 			log("SIGHUP received, reloading configuration")
@@ -87,5 +93,3 @@ func serverStart(c *cli.Context) error {
 
 	return nil
 }
-
-type LogFn func(string, ...interface{})

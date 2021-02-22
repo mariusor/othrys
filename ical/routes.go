@@ -4,8 +4,8 @@ import (
 	"net/http"
 )
 
-func Routes() http.Handler {
+func Routes(path string) http.Handler {
 	r := http.NewServeMux()
-	r.Handle("/", NewHandler())
+	r.Handle("/", NewHandler(path))
 	return r
 }

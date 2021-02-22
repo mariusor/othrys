@@ -3,9 +3,8 @@ Description=Web server for the ESports calendar
 After=network.target
 
 [Service]
-WorkingDirectory=DATA_DIR
 Type=simple
-ExecStart=BIN_DIR/ecalserver start --debug
+ExecStart=BIN_DIR/ecalserver start --debug --path DATA_DIR
 
 [Install]
 WantedBy=default.target
