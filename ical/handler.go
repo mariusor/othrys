@@ -28,6 +28,14 @@ func NewHandler(p string) *cal {
 	return c
 }
 
+func getContentType(u *url.URL) string {
+	typ := "text/calendar; charset=utf-8"
+	if path.Ext(u.Path) == ".txt" {
+		typ = "text/plain; chaset=utf-8"
+	}
+	return typ
+}
+
 func parsePath(u *url.URL) ([]string, int) {
 	year := int64(time.Now().Year())
 	if u == nil {
@@ -142,7 +150,7 @@ func (c *cal) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	b := &bytes.Buffer{}
 	err = cal.Encode(b)
 
-	w.Header().Set("Content-Type", "text/calendar; charset=utf-8")
+	w.Header().Set("Content-Type", getContentType(r.URL))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(fmt.Sprintf("%s", err)))
