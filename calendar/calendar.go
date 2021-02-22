@@ -143,13 +143,13 @@ func GetTypes(strs []string) []string {
 }
 
 var Colors = map[string]string{
-	liquid.LabelSC2:                 "99:99:99",
-	liquid.LabelSCRemastered:        "99:99:99",
-	liquid.LabelBW:                  "99:99:99",
-	liquid.LabelCSGO:                "99:99:99",
-	liquid.LabelHOTS:                "99:99:99",
-	liquid.LabelSmash:               "99:99:99",
-	liquid.LabelHearthstone:         "99:99:99",
+	liquid.LabelSC2:          "99:99:99",
+	liquid.LabelSCRemastered: "99:99:99",
+	liquid.LabelBW:           "99:99:99",
+	liquid.LabelCSGO:         "99:99:99",
+	liquid.LabelHOTS:         "99:99:99",
+	liquid.LabelSmash:        "99:99:99",
+	//liquid.LabelHearthstone:         "99:99:99",
 	liquid.LabelDota:                "99:99:99",
 	liquid.LabelLOL:                 "99:99:99",
 	liquid.LabelOverwatch:           "99:99:99",
@@ -171,13 +171,13 @@ var Colors = map[string]string{
 }
 
 var Labels = map[string]string{
-	liquid.LabelSC2:                 "StarCraft 2",
-	liquid.LabelSCRemastered:        "StarCraft Remastered",
-	liquid.LabelBW:                  "BroodWar",
-	liquid.LabelCSGO:                "Counterstrike: Go",
-	liquid.LabelHOTS:                "Heroes of the Storm",
-	liquid.LabelSmash:               "Smash",
-	liquid.LabelHearthstone:         "Hearthstone",
+	liquid.LabelSC2:          "StarCraft 2",
+	liquid.LabelSCRemastered: "StarCraft Remastered",
+	liquid.LabelBW:           "BroodWar",
+	liquid.LabelCSGO:         "Counterstrike: Go",
+	liquid.LabelHOTS:         "Heroes of the Storm",
+	liquid.LabelSmash:        "Smash",
+	//liquid.LabelHearthstone:         "Hearthstone",
 	liquid.LabelDota:                "DotA",
 	liquid.LabelLOL:                 "League of Legends",
 	liquid.LabelOverwatch:           "Overwatch",

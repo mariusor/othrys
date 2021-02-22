@@ -13,7 +13,8 @@ const LabelBW = "bw"
 const LabelCSGO = "csgo"
 const LabelHOTS = "hots"
 const LabelSmash = "smash"
-const LabelHearthstone = "hs"
+
+//const LabelHearthstone = "hs"
 const LabelDota = "dota"
 const LabelLOL = "lol"
 const LabelOverwatch = "ovw"
@@ -27,49 +28,52 @@ var ValidTypes = [...]string{
 	LabelCSGO,
 	LabelHOTS,
 	LabelSmash,
-	LabelHearthstone,
+	//LabelHearthstone,
 	LabelDota,
 	LabelLOL,
 	LabelOverwatch,
 }
 
 var baseURIs = map[string]string{
-	LabelTeamLiquid:  "http://www.teamliquid.net",
-	LabelSC2:         "http://www.teamliquid.net",
-	LabelBW:          "http://www.teamliquid.net",
-	LabelCSGO:        "http://www.teamliquid.net",
-	LabelHOTS:        "http://www.teamliquid.net",
-	LabelSmash:       "http://www.teamliquid.net",
-	LabelHearthstone: "http://www.liquidhearth.com",
-	LabelDota:        "http://www.liquiddota.com",
-	LabelLOL:         "http://www.liquidlegends.net",
-	LabelOverwatch:   "http://www.teamliquid.net",
+	LabelTeamLiquid:   "http://www.teamliquid.net",
+	LabelSCRemastered: "http://www.teamliquid.net",
+	LabelSC2:          "http://www.teamliquid.net",
+	LabelBW:           "http://www.teamliquid.net",
+	LabelCSGO:         "http://www.teamliquid.net",
+	LabelHOTS:         "http://www.teamliquid.net",
+	LabelSmash:        "http://www.teamliquid.net",
+	//LabelHearthstone:  "http://www.liquidhearth.com",
+	LabelDota:      "http://www.liquiddota.com",
+	LabelLOL:       "http://www.liquidlegends.net",
+	LabelOverwatch: "http://www.teamliquid.net",
 }
 
 var calendarPath = map[string]string{
-	LabelTeamLiquid:  "/calendar/",
-	LabelSC2:         "/calendar/",
-	LabelBW:          "/calendar/",
-	LabelCSGO:        "/calendar/",
-	LabelHOTS:        "/calendar/",
-	LabelSmash:       "/calendar/",
-	LabelHearthstone: "/calendar/",
-	LabelDota:        "/calendar/",
-	LabelLOL:         "/calendar/",
-	LabelOverwatch:   "/calendar/",
+	LabelTeamLiquid:   "/calendar/",
+	LabelSCRemastered: "/calendar/",
+	LabelSC2:          "/calendar/",
+	LabelBW:           "/calendar/",
+	LabelCSGO:         "/calendar/",
+	LabelHOTS:         "/calendar/",
+	LabelSmash:        "/calendar/",
+	//LabelHearthstone:  "/calendar/",
+	LabelDota:      "/calendar/",
+	LabelLOL:       "/calendar/",
+	LabelOverwatch: "/calendar/",
 }
 
 var eventPath = map[string]string{
-	LabelTeamLiquid:  "/calendar/manage",
-	LabelSC2:         "/calendar/manage",
-	LabelBW:          "/calendar/manage",
-	LabelCSGO:        "/calendar/manage",
-	LabelHOTS:        "/calendar/manage",
-	LabelSmash:       "/calendar/manage",
-	LabelHearthstone: "/calendar/manage",
-	LabelDota:        "/calendar/manage",
-	LabelLOL:         "/calendar/manage",
-	LabelOverwatch:   "/calendar/manage",
+	LabelTeamLiquid:   "/calendar/manage",
+	LabelSCRemastered: "/calendar/manage",
+	LabelSC2:          "/calendar/manage",
+	LabelBW:           "/calendar/manage",
+	LabelCSGO:         "/calendar/manage",
+	LabelHOTS:         "/calendar/manage",
+	LabelSmash:        "/calendar/manage",
+	//LabelHearthstone:  "/calendar/manage",
+	LabelDota:      "/calendar/manage",
+	LabelLOL:       "/calendar/manage",
+	LabelOverwatch: "/calendar/manage",
 }
 var calendarType = map[string]int{
 	LabelUnknown:   0,
