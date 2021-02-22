@@ -5,6 +5,7 @@ After=network.target
 [Service]
 WorkingDirectory=DATA_DIR
 Type=simple
-
 ExecStart=BIN_DIR/ecalserver start --debug
 
+[Install]
+WantedBy=default.target
