@@ -28,7 +28,7 @@ var Server = cli.Command{
 		&cli.IntFlag{
 			Name:  "port",
 			Usage: "Set hostname on which to listen to",
-			Value: 8080,
+			Value: 9999,
 		},
 	},
 	Action: serverStart,
