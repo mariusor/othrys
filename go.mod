@@ -3,6 +3,7 @@ module github.com/mariusor/esports-calendar
 go 1.13
 
 require (
+	git.sr.ht/~mariusor/wrapper v0.0.0-20210115104709-99415538f4b7
 	github.com/McKael/madon v2.3.0+incompatible
 	github.com/PuerkitoBio/goquery v1.5.0
 	github.com/gorilla/websocket v1.4.2 // indirect
