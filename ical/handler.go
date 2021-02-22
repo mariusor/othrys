@@ -3,15 +3,16 @@ package ical
 import (
 	"bytes"
 	"fmt"
-	"github.com/mariusor/esports-calendar/calendar"
-	"github.com/mariusor/esports-calendar/storage"
-	"github.com/mariusor/esports-calendar/storage/boltdb"
-	"github.com/soh335/ical"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/mariusor/esports-calendar/calendar"
+	"github.com/mariusor/esports-calendar/storage"
+	"github.com/mariusor/esports-calendar/storage/boltdb"
+	"github.com/soh335/ical"
 )
 
 type cal struct {
@@ -134,11 +135,11 @@ func (c *cal) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	b := &bytes.Buffer{}
 	err = cal.Encode(b)
 
+	w.Header().Set("Content-Type", "text/calendar; charset=utf-8")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(fmt.Sprintf("%s", err)))
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "text/calendar; charset=utf-8")
 	w.Write(b.Bytes())
 }
