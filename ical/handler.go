@@ -41,10 +41,10 @@ func parsePath(u *url.URL) ([]string, int) {
 		}
 	}
 	if len(pieces) > 1 {
-		if maybeYear, err := strconv.ParseInt(strings.Replace(pieces[len(pieces) - 2], "/", "", -1), 10, 32); err == nil {
+		if maybeYear, err := strconv.ParseInt(strings.Replace(pieces[len(pieces)-2], "/", "", -1), 10, 32); err == nil {
 			year = maybeYear
 		}
-		typesS = pieces[len(pieces) - 1]
+		typesS = pieces[len(pieces)-1]
 	}
 	if len(typesS) > 0 {
 		types = strings.Split(typesS, "+")
@@ -77,7 +77,7 @@ func (c *cal) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	cal.PRODID = fmt.Sprintf("-//TL//ESPORTS-CAL//EN/%s", c.Version)
 
 	cal.VERSION = "2.0"
-	cal.URL = fmt.Sprintf("https://calendar.littr.me%s", r.URL.String())
+	cal.URL = fmt.Sprintf("https://%s%s", r.Host, r.URL.Path)
 
 	name := "EsportsCalendar"
 	description := name
@@ -114,9 +114,13 @@ func (c *cal) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			summary = fmt.Sprintf("[%s] %s: %s", ev.Type, ev.Category, summary)
 		}
 
+		stamp := ev.StartTime
+		if !ev.LastModified.IsZero() {
+			stamp = ev.LastModified
+		}
 		e := &ical.VEvent{
 			UID:         fmt.Sprintf("%d", ev.CalID),
-			DTSTAMP:     ev.LastModified,
+			DTSTAMP:     stamp,
 			DTSTART:     ev.StartTime,
 			DTEND:       ev.StartTime.Add(ev.Duration),
 			SUMMARY:     summary,
