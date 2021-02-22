@@ -1,0 +1,10 @@
+[Unit]
+Description=Scraper for ESports calendar
+After=network.target
+
+[Service]
+WorkingDirectory=DATA_DIR
+Type=oneshot
+
+ExecStart=BIN_DIR/ecalctl fetch --debug --calendar CALENDARS
+

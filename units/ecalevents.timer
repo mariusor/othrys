@@ -1,0 +1,9 @@
+[Unit]
+Description=Run calendar.service every six hours
+
+[Timer]
+RandomizedDelaySec=1873
+OnCalendar=*-*-* 00,06,12,18:00:00
+
+[Install]
+WantedBy=timers.target

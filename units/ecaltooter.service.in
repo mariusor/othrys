@@ -1,0 +1,10 @@
+[Unit]
+Description=Mastodon tooter for ESport events
+After=network.target
+
+[Service]
+WorkingDirectory=DATA_DIR
+Type=oneshot
+
+ExecStart=BIN_DIR/ecalctl toot --type CALENDARS
+
