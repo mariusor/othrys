@@ -2,6 +2,7 @@ package calendar
 
 import (
 	"fmt"
+	"path/filepath"
 	"sort"
 	"strings"
 	"time"
@@ -119,6 +120,9 @@ func GetTypes(strs []string) []string {
 		return append(liquid.ValidTypes[:], plusforward.ValidTypes[:]...)
 	}
 	for _, typ := range strs {
+		if ext := filepath.Ext(typ); ext != "" {
+			typ = strings.Replace(typ, ext, "", 1)
+		}
 		if !liquid.ValidType(typ) && !plusforward.ValidType(typ) || inStringList(typ, types) {
 			continue
 		}
