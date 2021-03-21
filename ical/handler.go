@@ -11,10 +11,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/soh335/ical"
+
 	"github.com/mariusor/esports-calendar/calendar"
 	"github.com/mariusor/esports-calendar/storage"
 	"github.com/mariusor/esports-calendar/storage/boltdb"
-	"github.com/soh335/ical"
 )
 
 type cal struct {

@@ -3,13 +3,14 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/mariusor/esports-calendar/ical"
-	"github.com/urfave/cli"
 	"os"
 	"syscall"
 	"time"
 
+	"github.com/urfave/cli"
+
 	w "git.sr.ht/~mariusor/wrapper"
+	"github.com/mariusor/esports-calendar/ical"
 )
 
 var Server = cli.Command{

@@ -2,11 +2,13 @@ package cmd
 
 import (
 	"fmt"
+	"time"
+
+	"github.com/urfave/cli"
+
 	"github.com/mariusor/esports-calendar/calendar"
 	"github.com/mariusor/esports-calendar/storage"
 	"github.com/mariusor/esports-calendar/storage/boltdb"
-	"github.com/urfave/cli"
-	"time"
 )
 
 var List = cli.Command{

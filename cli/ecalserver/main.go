@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/mariusor/esports-calendar/cmd"
-	"github.com/urfave/cli"
 	"os"
+
+	"github.com/urfave/cli"
+
+	"github.com/mariusor/esports-calendar/cmd"
 )
 
 var version = "(unknown)"

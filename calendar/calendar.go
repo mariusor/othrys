@@ -2,11 +2,12 @@ package calendar
 
 import (
 	"fmt"
-	"github.com/mariusor/esports-calendar/calendar/liquid"
-	"github.com/mariusor/esports-calendar/calendar/plusforward"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/mariusor/esports-calendar/calendar/liquid"
+	"github.com/mariusor/esports-calendar/calendar/plusforward"
 )
 
 var DefaultCalendars = []string{liquid.LabelTeamLiquid, plusforward.LabelPlusForward}

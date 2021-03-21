@@ -1,8 +1,9 @@
 package storage
 
 import (
-	"github.com/mariusor/esports-calendar/calendar"
 	"time"
+
+	"github.com/mariusor/esports-calendar/calendar"
 )
 
 type DateCursor struct {

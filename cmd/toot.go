@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/McKael/madon"
 	"github.com/urfave/cli"
-	"os"
 )
 
 var Toot = cli.Command{

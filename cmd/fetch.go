@@ -2,11 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/mariusor/esports-calendar/calendar"
-	"github.com/mariusor/esports-calendar/storage/boltdb"
-	"github.com/urfave/cli"
 	"os"
 	"time"
+
+	"github.com/urfave/cli"
+
+	"github.com/mariusor/esports-calendar/calendar"
+	"github.com/mariusor/esports-calendar/storage/boltdb"
 )
 
 var now = time.Now()

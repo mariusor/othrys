@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/mariusor/esports-calendar/calendar"
-	"github.com/urfave/cli"
 	"strings"
+
+	"github.com/urfave/cli"
+
+	"github.com/mariusor/esports-calendar/calendar"
 )
 
 var ShowTypes = cli.Command{

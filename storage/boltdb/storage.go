@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"time"
+
+	bolt "go.etcd.io/bbolt"
+
 	"github.com/mariusor/esports-calendar/calendar"
 	"github.com/mariusor/esports-calendar/storage"
-	bolt "go.etcd.io/bbolt"
-	"time"
 )
 
 type LoggerFn func(string, ...interface{})
