@@ -17,6 +17,13 @@ func main() {
 	ctl := cli.App{
 		Name:    "ecalsrv",
 		Version: version,
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:  "path",
+				Usage: "Set storage path",
+				Value: "./",
+			},
+		},
 		Commands: []cli.Command{
 			cmd.Server,
 		},

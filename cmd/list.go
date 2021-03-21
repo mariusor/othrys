@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"path"
 	"time"
 
 	"github.com/urfave/cli"
@@ -56,7 +57,7 @@ func listCalendars(c *cli.Context) error {
 
 	date := start
 	st := boltdb.New(boltdb.Config{
-		Path:  "./calendar.bdb",
+		Path:  path.Join(c.GlobalString("path"), boltdb.DefaultFile),
 		LogFn: nil,
 		ErrFn: nil,
 	})

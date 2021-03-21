@@ -4,6 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"os"
+	"os/user"
+	"path"
+	"path/filepath"
 	"time"
 
 	bolt "go.etcd.io/bbolt"
@@ -24,6 +28,7 @@ type repo struct {
 }
 
 const (
+	DefaultFile = "calendar.bdb"
 	rootBucket = "cal"
 )
 
@@ -36,9 +41,10 @@ type Config struct {
 
 // New returns a new repo repository
 func New(c Config) *repo {
+	p, _ := mkDirIfNotExists(c.Path)
 	b := repo{
 		root: []byte(rootBucket),
-		path: c.Path,
+		path: p,
 		log:  func(string, ...interface{}) {},
 		err:  func(string, ...interface{}) {},
 	}
@@ -314,4 +320,31 @@ func save(r *repo, ev calendar.Event) (calendar.Event, error) {
 	})
 
 	return ev, err
+}
+
+func mkDirIfNotExists(p string) (string, error) {
+	if len(p) > 0 && p[0] == '~' {
+		// NOTE(marius): sometimes the value hasn't been passed from a shell, so ~ doesn't get expanded
+		usr, _ := user.Current()
+		path := usr.HomeDir
+		if len(p) > 1 {
+			path += p[1:]
+		}
+		p = path
+	}
+	fullPath, _ := filepath.Abs(path.Clean(path.Dir(p)))
+	fi, err := os.Stat(fullPath)
+	if err != nil && os.IsNotExist(err) {
+		err = os.MkdirAll(fullPath, os.ModeDir|os.ModePerm|0700)
+	}
+	if err != nil {
+		return "", err
+	}
+	fi, err = os.Stat(fullPath)
+	if err != nil {
+		return "", err
+	} else if !fi.IsDir() {
+		return "", fmt.Errorf("path exists, and is not a folder %s", fullPath)
+	}
+	return path.Join(fullPath, path.Base(p)), nil
 }

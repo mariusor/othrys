@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -25,7 +24,7 @@ type cal struct {
 
 func NewHandler(p string) *cal {
 	c := new(cal)
-	c.Path, _ = filepath.Abs(path.Clean(p))
+	c.Path = p
 	return c
 }
 
@@ -78,7 +77,7 @@ func (c *cal) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
 	date, _ = time.Parse("2006-01-02 15:04:05", dateURL)
 	st := boltdb.New(boltdb.Config{
-		Path:  path.Join(c.Path, "calendar.bdb"),
+		Path:  path.Join(c.Path, boltdb.DefaultFile),
 		LogFn: nil,
 		ErrFn: nil,
 	})

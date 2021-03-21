@@ -17,6 +17,13 @@ func main() {
 	ctl := cli.App{
 		Name:    "ecalctl",
 		Version: version,
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:  "path",
+				Usage: "The path for storage",
+				Value: ".",
+			},
+		},
 		Commands: []cli.Command{
 			cmd.ShowTypes,
 			cmd.Fetch,
