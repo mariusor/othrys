@@ -2,6 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/mariusor/esports-calendar/calendar/liquid"
+	"github.com/mariusor/esports-calendar/calendar/plusforward"
+	"io"
 	"strings"
 
 	"github.com/urfave/cli"
@@ -16,22 +19,38 @@ var ShowTypes = cli.Command{
 	CustomHelpTemplate: showHelp(),
 }
 
-var validTypes = calendar.GetTypes(nil)
+var validTypes = calendar.DefaultCalendars
 
+func writeHelpLabels(w io.StringWriter, labels ...string) error {
+	for _, lbl := range labels {
+		w.WriteString("\t\t")
+		w.WriteString(lbl)
+		w.WriteString(": ")
+		w.WriteString(calendar.Labels[lbl])
+		w.WriteString("\n")
+	}
+	return nil
+}
 func showHelp() string {
 	h := strings.Builder{}
 	h.WriteString("Valid calendar types:\n")
-	h.WriteString("\n")
-	h.WriteString(fmt.Sprintf("Global: %s", strings.Join(validTypes, ", ")))
-	h.WriteString(fmt.Sprintf("Global: %s, %s\n\tLoad all types on specific sites", calendar.DefaultCalendars[0],calendar.DefaultCalendars[0]))
+	h.WriteString("Global:\n")
+	writeHelpLabels(&h, validTypes...)
 	h.WriteString("\n")
 	h.WriteString("Specific:\n")
-	//h.WriteString(fmt.Sprintf("\tTeamLiquid: %s\n", strings.Join(liquid.ValidTypes[:], ", ")))
-	//h.WriteString(fmt.Sprintf("\tPlusForward: %s\n", strings.Join(plusforward.ValidTypes[:], ", ")))
+	h.WriteString("\t")
+	h.WriteString(calendar.Labels["tl"])
+	h.WriteString(":\n")
+	writeHelpLabels(&h, liquid.ValidTypes[:]...)
+	h.WriteString("\n")
+	h.WriteString("\t")
+	h.WriteString(calendar.Labels["pfw"])
+	h.WriteString(":\n")
+	writeHelpLabels(&h, plusforward.ValidTypes[:]...)
 	return h.String()
 }
 
 func showCalendars(c *cli.Context) error {
-	fmt.Printf("%s\n", strings.Join(validTypes, ", "))
+	fmt.Printf("%s\n", strings.Join(calendar.GetTypes(nil), ", "))
 	return nil
 }

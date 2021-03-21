@@ -172,6 +172,7 @@ var Colors = map[string]string{
 }
 
 var Labels = map[string]string{
+	liquid.LabelTeamLiquid:   "TeamLiquid",
 	liquid.LabelSC2:          "StarCraft 2",
 	liquid.LabelSCRemastered: "StarCraft Remastered",
 	liquid.LabelBW:           "BroodWar",
@@ -182,6 +183,7 @@ var Labels = map[string]string{
 	liquid.LabelDota:                "DotA",
 	liquid.LabelLOL:                 "League of Legends",
 	liquid.LabelOverwatch:           "Overwatch",
+	plusforward.LabelPlusForward:    "PlusForward",
 	plusforward.LabelQuakeLive:      "Quake Live",
 	plusforward.LabelQuakeIV:        "Quake IV",
 	plusforward.LabelQuakeIII:       "Quake III",
