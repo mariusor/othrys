@@ -115,13 +115,22 @@ func loadFromBucketRecursive(b *bolt.Bucket, min, max []byte) calendar.Events {
 
 	c := b.Cursor()
 
-	first := func() ([]byte, []byte) { return c.First() }
-	compare := func(k, v []byte) bool { return k != nil }
+	first := func() ([]byte, []byte) {
+		return c.First()
+	}
+	compare := func(k, v []byte) bool {
+		return k != nil
+	}
 	if min != nil {
-		first = func() ([]byte, []byte) { return c.Seek(min) }
+		first = func() ([]byte, []byte) {
+			pieces := bytes.Split(min, []byte{'/'})
+			return c.Seek(pieces[0])
+		}
 	}
 	if max != nil {
-		compare = func(k, v []byte) bool { return k != nil && bytes.Compare(k, max) <= 0 }
+		compare = func(k, v []byte) bool {
+			return k != nil && bytes.Compare(k, max) <= 0
+		}
 	}
 	for key, raw := first(); compare(key, raw); key, raw = c.Next() {
 		if raw == nil {
@@ -212,11 +221,11 @@ func descendToLastCommonBucket(root *bolt.Bucket, min, max []byte) (*bolt.Bucket
 		if cb == nil {
 			break
 		}
-		lvl = i
+		lvl = i+1
 		b = cb
 	}
-	min = bytes.Join(minPieces[lvl+1:], pathSeparator)
-	max = bytes.Join(maxPieces[lvl+1:], pathSeparator)
+	min = bytes.Join(minPieces[lvl:], pathSeparator)
+	max = bytes.Join(maxPieces[lvl:], pathSeparator)
 	return b, min, max, nil
 }
 
