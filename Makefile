@@ -58,14 +58,13 @@ coverage: TEST_TARGET := .
 coverage: TEST_FLAGS += -covermode=count -coverprofile $(PROJECT_NAME).coverprofile
 coverage: test
 
-units: units/ecalevents.service units/ecalserver.service units/ecaltooter.service
+units: $(patsubst units/%.service.in, units/%.service, $(wildcard units/*.service.in))
 
-units/ecalevents.service: units/ecalevents.service.in
+units/%.service: units/%.service.in
 	$(M4) -DCALENDARS=$(CALENDARS) -DDATA_DIR=$(DATA_DIR) -DBIN_DIR=$(BIN_DIR) $< >$@
-units/ecaltooter.service: units/ecaltooter.service.in
-	$(M4) -DCALENDARS=$(CALENDARS) -DDATA_DIR=$(DATA_DIR) -DBIN_DIR=$(BIN_DIR) $< >$@
-units/ecalserver.service: units/ecalserver.service.in
-	$(M4) -DDATA_DIR=$(DATA_DIR) -DBIN_DIR=$(BIN_DIR) $< >$@
+
+mod_tidy:
+	$(GO) mod tidy
 
 install: units ecalctl ecalserver
 	test -d $(DESTDIR)$(INSTALL_PREFIX)$(USERUNITDIR)/ || mkdir -p $(DESTDIR)$(INSTALL_PREFIX)$(USERUNITDIR)/
