@@ -14,7 +14,6 @@ const LabelCSGO = "csgo"
 const LabelHOTS = "hots"
 const LabelSmash = "smash"
 
-//const LabelHearthstone = "hs"
 const LabelDota = "dota"
 const LabelLOL = "lol"
 const LabelOverwatch = "ovw"
@@ -28,7 +27,6 @@ var ValidTypes = [...]string{
 	LabelCSGO,
 	LabelHOTS,
 	LabelSmash,
-	//LabelHearthstone,
 	LabelDota,
 	LabelLOL,
 	LabelOverwatch,
@@ -42,9 +40,8 @@ var baseURIs = map[string]string{
 	LabelCSGO:         "http://www.teamliquid.net",
 	LabelHOTS:         "http://www.teamliquid.net",
 	LabelSmash:        "http://www.teamliquid.net",
-	//LabelHearthstone:  "http://www.liquidhearth.com",
-	LabelDota:      "http://www.liquiddota.com",
-	LabelLOL:       "http://www.liquidlegends.net",
+	LabelDota:         "http://www.teamliquid.com",
+	//LabelLOL:          "http://www.liquidlegends.net",
 	LabelOverwatch: "http://www.teamliquid.net",
 }
 
@@ -56,10 +53,9 @@ var calendarPath = map[string]string{
 	LabelCSGO:         "/calendar/",
 	LabelHOTS:         "/calendar/",
 	LabelSmash:        "/calendar/",
-	//LabelHearthstone:  "/calendar/",
-	LabelDota:      "/calendar/",
-	LabelLOL:       "/calendar/",
-	LabelOverwatch: "/calendar/",
+	LabelDota:         "/calendar/",
+	LabelLOL:          "/calendar/",
+	LabelOverwatch:    "/calendar/",
 }
 
 var eventPath = map[string]string{
@@ -70,10 +66,9 @@ var eventPath = map[string]string{
 	LabelCSGO:         "/calendar/manage",
 	LabelHOTS:         "/calendar/manage",
 	LabelSmash:        "/calendar/manage",
-	//LabelHearthstone:  "/calendar/manage",
-	LabelDota:      "/calendar/manage",
-	LabelLOL:       "/calendar/manage",
-	LabelOverwatch: "/calendar/manage",
+	LabelDota:         "/calendar/manage",
+	LabelLOL:          "/calendar/manage",
+	LabelOverwatch:    "/calendar/manage",
 }
 var calendarType = map[string]int{
 	LabelUnknown:   0,
@@ -83,6 +78,8 @@ var calendarType = map[string]int{
 	LabelHOTS:      4,
 	LabelSmash:     5,
 	LabelOverwatch: 6,
+	LabelDota:      8,
+	LabelLOL:       9,
 }
 
 func ValidType(typ string) bool {

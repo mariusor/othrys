@@ -23,6 +23,10 @@ func main() {
 				Usage: "The path for storage",
 				Value: cmd.DataPath(),
 			},
+			&cli.BoolFlag{
+				Name:  "debug",
+				Usage: "Output debug messages",
+			},
 		},
 		Commands: []cli.Command{
 			cmd.ShowTypes,

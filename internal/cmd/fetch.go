@@ -133,11 +133,11 @@ func (c cal) Load(startDate time.Time) (calendar.Events, error) {
 
 	for _, l := range urls {
 		if c.debug {
-			c.log("Loading [%s]", l.t)
+			u, _ := calendar.GetCalendarURL(l.t, l.d, c.weekly)
+			c.log("Loading [%s]: %s", l.t, u)
 		}
 		ev, err := calendar.LoadEvents(l.t, l.d)
 		if err != nil {
-			//u, _ := calendar.GetCalendarURL(l.t, l.d, c.weekly)
 			c.err("Unable to parse page URI for type %s: %s", l.t, err)
 			continue
 		}
@@ -162,13 +162,16 @@ func fetchCalendars(c *cli.Context) error {
 		}
 	}
 	duration := c.Duration("end")
-	debug := c.Bool("debug")
+	debug := c.Bool("debug") || c.GlobalBool("debug")
 
 	f, err := New(debug, types...)
 	if err != nil {
 		return err
 	}
 
+	if len(f.types) == 0 {
+		return fmt.Errorf("no valid calendars have been passed: %s", types)
+	}
 	date := start
 	endDate := start.Add(duration - time.Second)
 	st := boltdb.New(boltdb.Config{
