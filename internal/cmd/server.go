@@ -55,7 +55,7 @@ func serverStart(c *cli.Context) error {
 
 	path := c.GlobalString("path")
 	// Get start/stop functions for the http server
-	srvRun, srvStop := w.HttpServer(ctx, w.Handler(ical.Routes(path)), w.ListenOn(listen))
+	srvRun, srvStop := w.HttpServer(w.Handler(ical.Routes(path)), w.OnTCP(listen))
 	w.RegisterSignalHandlers(w.SignalHandlers{
 		syscall.SIGHUP: func(_ chan int) {
 			info("SIGHUP received, reloading configuration")
@@ -80,7 +80,7 @@ func serverStart(c *cli.Context) error {
 		var err error
 		// Doesn't block if no connections, but will otherwise wait until the timeout deadline.
 		go func(e error) {
-			if err = srvStop(); err != nil {
+			if err = srvStop(ctx); err != nil {
 				errFn("Error: %s", err)
 			}
 		}(err)
