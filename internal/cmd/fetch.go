@@ -22,7 +22,15 @@ var (
 	defaultStartTime = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 )
 
-const AppName = "othrys"
+const (
+	AppName    = "othrys"
+	AppVersion = "(unknown)"
+)
+
+var (
+	AppWebsite = "https://github.com/mariusor/ecal-server"
+	AppScopes  = []string{"read+write+follow"}
+)
 
 func MkDirIfNotExists(p string) error {
 	fi, err := os.Stat(p)

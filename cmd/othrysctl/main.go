@@ -9,14 +9,12 @@ import (
 	"github.com/mariusor/esports-calendar/internal/cmd"
 )
 
-var version = "(unknown)"
-
 func main() {
 	var err error
 
 	ctl := cli.App{
 		Name:    fmt.Sprintf("%sctl", cmd.AppName),
-		Version: version,
+		Version: cmd.AppVersion,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "path",
@@ -32,7 +30,7 @@ func main() {
 			cmd.ShowTypes,
 			cmd.Fetch,
 			cmd.List,
-			cmd.Toot,
+			cmd.Post,
 		},
 	}
 

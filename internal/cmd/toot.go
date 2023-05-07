@@ -8,7 +8,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-var Toot = cli.Command{
+var Post = cli.Command{
 	Name:  "toot",
 	Usage: "Post events to mastodon",
 	Flags: []cli.Flag{
@@ -43,7 +43,6 @@ func toot(c *cli.Context) error {
 	var err error
 
 	// Overwrite variables using Viper
-	AppName := ""
 	AppWebsite := ""
 	scopes := make([]string, 0)
 	instanceURL := ""
