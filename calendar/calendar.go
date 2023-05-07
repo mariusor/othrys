@@ -2,6 +2,7 @@ package calendar
 
 import (
 	"fmt"
+	vocab "github.com/go-ap/activitypub"
 	"net/url"
 	"path/filepath"
 	"sort"
@@ -30,6 +31,8 @@ type Event struct {
 	MatchCount   int
 	Links        []string
 	Canceled     bool
+	TagNames     []string
+	Tags         vocab.ItemCollection
 }
 
 type Events []Event
@@ -229,7 +232,20 @@ func LoadEvents(typ string, date time.Time) (Events, error) {
 			return nil, err
 		}
 		for _, ev := range e {
-			events = append(events, *(*Event)(&ev))
+			events = append(events, Event{
+				CalID:        ev.CalID,
+				StartTime:    ev.StartTime,
+				Duration:     ev.Duration,
+				LastModified: ev.LastModified,
+				Type:         ev.Type,
+				Category:     ev.Category,
+				Stage:        ev.Stage,
+				Content:      ev.Content,
+				MatchCount:   ev.MatchCount,
+				Links:        ev.Links,
+				Canceled:     ev.Canceled,
+				TagNames:     ev.TagNames,
+			})
 		}
 	} else if liquid.ValidType(typ) {
 		e, err := liquid.LoadEvents(u, date)
@@ -237,7 +253,20 @@ func LoadEvents(typ string, date time.Time) (Events, error) {
 			return nil, err
 		}
 		for _, ev := range e {
-			events = append(events, *(*Event)(&ev))
+			events = append(events, Event{
+				CalID:        ev.CalID,
+				StartTime:    ev.StartTime,
+				Duration:     ev.Duration,
+				LastModified: ev.LastModified,
+				Type:         ev.Type,
+				Category:     ev.Category,
+				Stage:        ev.Stage,
+				Content:      ev.Content,
+				MatchCount:   ev.MatchCount,
+				Links:        ev.Links,
+				Canceled:     ev.Canceled,
+				TagNames:     ev.TagNames,
+			})
 		}
 	} else {
 		err = fmt.Errorf("invalid type %s", typ)

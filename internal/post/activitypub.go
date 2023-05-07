@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 	"encoding/gob"
 	"fmt"
-	"github.com/mariusor/esports-calendar/internal/cmd"
 	"html/template"
 	"io/fs"
 	"net"
@@ -15,12 +14,14 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
 	"git.sr.ht/~mariusor/lw"
 	"git.sr.ht/~mariusor/tagextractor"
+	"github.com/McKael/madon"
 	vocab "github.com/go-ap/activitypub"
 	"github.com/go-ap/client"
 	"github.com/go-ap/errors"
@@ -28,6 +29,8 @@ import (
 	"gitlab.com/golang-commonmark/markdown"
 	"golang.org/x/oauth2"
 	"golang.org/x/sync/errgroup"
+
+	"github.com/mariusor/esports-calendar/calendar"
 )
 
 const releaseHTMLTpl = ``
@@ -60,6 +63,9 @@ var (
 			"commonTags": commonTags,
 		}).Parse(releaseHTMLTpl))
 )
+
+var infFn client.LogFn = func(s string, i ...interface{}) {}
+var errFn client.LogFn = func(s string, i ...interface{}) {}
 
 func maxItems(max int) client.FilterFn {
 	v := url.Values{}
@@ -94,7 +100,7 @@ func newActivityPubTag(tag string, baseURL vocab.IRI) *vocab.Object {
 	return t
 }
 
-func apTags(releases []release, baseURL vocab.IRI) vocab.ItemCollection {
+func apTags(releases calendar.Events, baseURL vocab.IRI) vocab.ItemCollection {
 	if len(releases) == 0 {
 		return nil
 	}
@@ -123,20 +129,6 @@ func setIDOf(it vocab.Item, id vocab.ID) {
 	} else {
 		vocab.OnObject(it, func(ob *vocab.Object) error {
 			ob.ID = id
-			return nil
-		})
-	}
-}
-
-func setNameOf(it vocab.Item, name string) {
-	if vocab.LinkTypes.Contains(it.GetType()) {
-		vocab.OnLink(it, func(lnk *vocab.Link) error {
-			lnk.Name = nl(name)
-			return nil
-		})
-	} else {
-		vocab.OnObject(it, func(ob *vocab.Object) error {
-			ob.Name = nl(name)
 			return nil
 		})
 	}
@@ -200,7 +192,7 @@ func acceptFollows(actor *vocab.Actor, cl client.PubClient) error {
 			vocab.OnActivity(act, func(follow *vocab.Activity) error {
 				skip = followerIRIs.Contains(follow.Actor.GetLink())
 				if !skip {
-					Info("Accepting Follow request from: %s", follow.Actor.GetLink())
+					infFn("Accepting Follow request from: %s", follow.Actor.GetLink())
 				}
 				return nil
 			})
@@ -223,7 +215,7 @@ func acceptFollows(actor *vocab.Actor, cl client.PubClient) error {
 	for _, accept := range toSend {
 		g.Go(func() error {
 			if _, _, err := cl.ToOutbox(ctx, accept); err != nil {
-				Error("Failed accepting follow: %+s", err)
+				errFn("Failed accepting follow: %+s", err)
 			}
 			return nil
 		})
@@ -242,30 +234,30 @@ func defaultActivityPubTags(date time.Time, baseURL vocab.IRI) vocab.ItemCollect
 type apContent struct {
 	tags     []string
 	Date     time.Time
-	Releases []release
+	Releases calendar.Events
 	Tags     vocab.ItemCollection
 }
 
-func renderHTMLObject(d time.Time, rel []release, tags vocab.ItemCollection) (string, error) {
+func renderHTMLObject(d time.Time, rel calendar.Events, tags vocab.ItemCollection) (string, error) {
 	model := apContent{Date: d, Releases: rel, Tags: tags}
 	contBuff := bytes.NewBuffer(nil)
 	if err := contHTMLTemplate.Execute(contBuff, model); err != nil {
-		Error("unable to render post %s", err)
+		errFn("unable to render post %s", err)
 		return "", err
 	}
 	return contBuff.String(), nil
 }
 
-func loadTagsToGroup(group []release, tags vocab.ItemCollection) ([]release, vocab.ItemCollection) {
+func loadTagsToGroup(group calendar.Events, tags vocab.ItemCollection) (calendar.Events, vocab.ItemCollection) {
 	remainingTags := make(vocab.ItemCollection, 0)
 	for i, rel := range group {
-		rel.tags = make(vocab.ItemCollection, 0)
+		rel.Tags = make(vocab.ItemCollection, 0)
 		for _, t := range tags {
 			for _, tag := range rel.TagNames {
 				tag = "#" + tagNormalize(tag)
 				tagName := nameOf(t)
-				if strings.EqualFold(tag, tagName) && !rel.tags.Contains(t) {
-					rel.tags = append(rel.tags, t)
+				if strings.EqualFold(tag, tagName) && !rel.Tags.Contains(t) {
+					rel.Tags = append(rel.Tags, t)
 				}
 			}
 		}
@@ -274,7 +266,7 @@ func loadTagsToGroup(group []release, tags vocab.ItemCollection) ([]release, voc
 found:
 	for _, t := range tags {
 		for _, rel := range group {
-			if rel.tags.Contains(t) {
+			if rel.Tags.Contains(t) {
 				continue found
 			}
 		}
@@ -334,9 +326,6 @@ func removeExistingTags(ctx context.Context, client client.PubGetter, actor *voc
 	return tagsToCreate, nil
 }
 
-var Error client.LogFn
-var Info client.LogFn
-
 func PostToActivityPub(cl *APClient) PosterFn {
 	logger := lw.Dev()
 
@@ -346,25 +335,26 @@ func PostToActivityPub(cl *APClient) PosterFn {
 		client.WithHTTPClient(oauth),
 		client.WithLogger(logger),
 	)
-	Error = logger.Errorf
-	Info = logger.Infof
+
+	errFn = logger.Errorf
+	infFn = logger.Infof
 
 	c, cancelFn := context.WithTimeout(context.Background(), time.Second)
 	defer cancelFn()
 
 	actor, err := ap.Actor(c, cl.ID)
 	if err != nil {
-		Error("%s, falling back to just printing", err)
+		errFn("%s, falling back to just printing", err)
 		return PostToStdout
 	}
 
 	if err := acceptFollows(actor, ap); err != nil {
-		Error("failed to accept follows for actor: %s", err)
+		errFn("failed to accept follows for actor: %s", err)
 	}
 
 	ctx := context.Background()
 
-	return func(groupped map[time.Time][]release) error {
+	return func(groupped map[time.Time]calendar.Events) error {
 		activities := make([]vocab.Activity, 0)
 		for gd, group := range groupped {
 			ob := new(vocab.Object)
@@ -374,7 +364,7 @@ func PostToActivityPub(cl *APClient) PosterFn {
 			tags := append(defaultActivityPubTags(gd, actor.ID), apTags(group, actor.ID)...)
 			toCreateTags, err := removeExistingTags(ctx, ap, actor, tags)
 			if err != nil {
-				Info("Error when loading tags from server: %s", err)
+				infFn("Error when loading tags from server: %s", err)
 			}
 			if len(toCreateTags) > 0 {
 				activities = append(activities, wrapObjectInCreate(*actor, toCreateTags))
@@ -384,7 +374,7 @@ func PostToActivityPub(cl *APClient) PosterFn {
 
 			content, err := renderHTMLObject(gd, group, globalTags)
 			if err != nil {
-				Error("Unable to render HTML object: %s", err)
+				errFn("Unable to render HTML object: %s", err)
 				continue
 			}
 			ob.Content = nl(content)
@@ -414,12 +404,12 @@ func PostToActivityPub(cl *APClient) PosterFn {
 				return nil
 			}
 			if err != nil {
-				Error("Unable to refresh OAuth2 token: %s", err)
+				errFn("Unable to refresh OAuth2 token: %s", err)
 			} else {
-				if err := saveCredentials(cl, filepath.Join(cmd.DataPath(), InstanceName(cl.ID.String()))); err != nil {
-					Error("Unable to save new credentials for %s: %s", cl.ID, err)
+				if err := saveCredentials(cl, filepath.Join(cl.Type, InstanceName(cl.ID.String()))); err != nil {
+					errFn("Unable to save new credentials for %s: %s", cl.ID, err)
 				}
-				Info("Refreshed OAuth2 credentials %s", cl.ID)
+				infFn("Refreshed OAuth2 credentials %s", cl.ID)
 			}
 		}
 		return nil
@@ -441,6 +431,7 @@ func wrapObjectInCreate(actor vocab.Actor, p vocab.Item) vocab.Activity {
 type APClient struct {
 	ID    vocab.IRI
 	Types []string
+	Type  string
 	Conf  oauth2.Config
 	Tok   *oauth2.Token
 }
@@ -494,6 +485,7 @@ func getActorOAuthEndpoint(actor vocab.Actor) oauth2.Endpoint {
 	return e
 }
 
+/*
 func CheckONICredentialsFile(instance string, cl *http.Client, secret, token string, dryRun bool) (*APClient, error) {
 	actorIRI := vocab.IRI(instance)
 	u, _ := actorIRI.URL()
@@ -614,13 +606,14 @@ func CheckFedBOXCredentialsFile(instance, key, secret, token string, dryRun bool
 
 	return app, saveCredentials(app, filepath.Join(cmd.DataPath(), InstanceName(instance)))
 }
+*/
 
 func UpdateAPAccount(app *APClient, a fs.FS, dryRun bool) error {
 	var name, desc, avatar, hdr string
 
 	logger := lw.Dev()
-	Error = logger.Errorf
-	Info = logger.Infof
+	errFn = logger.Errorf
+	infFn = logger.Infof
 
 	var tags vocab.ItemCollection
 	if data, _ := loadStaticFile(a, "static/name.txt"); data != nil {
@@ -726,7 +719,7 @@ func UpdateAPAccount(app *APClient, a fs.FS, dryRun bool) error {
 	if !dryRun {
 		(batch{ap: ap, activities: operations}).Send()
 	} else {
-		Info("Update activity: %+v", updateActor)
+		infFn("Update activity: %+v", updateActor)
 	}
 	return nil
 }
@@ -740,9 +733,9 @@ func (b batch) Send() {
 	for _, act := range b.activities {
 		_, created, err := b.ap.ToOutbox(context.Background(), act)
 		if err != nil {
-			Error("%+s", err)
+			errFn("%+s", err)
 		} else {
-			Info("Created object: %s", created.GetLink())
+			infFn("Created object: %s", created.GetLink())
 		}
 	}
 }
@@ -756,4 +749,60 @@ func saveCredentials(cl any, path string) error {
 
 	d := gob.NewEncoder(f)
 	return d.Encode(cl)
+}
+
+func LoadCredentials(path string) (map[string]any, error) {
+	creds := make(map[string]any)
+
+	err := filepath.WalkDir(path, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			return nil
+		}
+
+		raw, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		for _, cl := range []any{new(APClient), new(madon.Client)} {
+			if err := gob.NewDecoder(bytes.NewReader(raw)).Decode(cl); err != nil {
+				continue
+			}
+			creds[filepath.Base(path)] = cl
+		}
+		return nil
+	})
+
+	return creds, err
+}
+
+var (
+	repl            = regexp.MustCompile("metal$")
+	toRemoveStrings = []string{"(early)", "(later)", "(mid)", "-", " ", "#", "'"}
+)
+
+func tagNormalize(t string) string {
+	hasHash := len(t) > 2 && t[0] == '#'
+	if hasHash {
+		t = t[1:]
+	}
+	if strings.EqualFold(t, "Post-Metal") {
+		return "postmetal"
+	}
+	if strings.EqualFold(t, "Metal") {
+		return "metal"
+	}
+	t = strings.ToLower(t)
+	t = removeStrings(t, toRemoveStrings...)
+	t = repl.ReplaceAllLiteralString(t, "")
+	return t
+}
+
+func removeStrings(s string, replace ...string) string {
+	for _, r := range replace {
+		s = strings.ReplaceAll(s, r, "")
+	}
+	return s
 }

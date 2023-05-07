@@ -30,7 +30,7 @@ func main() {
 			cmd.ShowTypes,
 			cmd.Fetch,
 			cmd.List,
-			cmd.Post,
+			cmd.PostCmd,
 		},
 	}
 

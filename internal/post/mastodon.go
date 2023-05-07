@@ -3,25 +3,19 @@ package post
 import (
 	"bytes"
 	"encoding/base64"
-	"encoding/gob"
 	"fmt"
+	"github.com/mariusor/esports-calendar/calendar"
 	"io"
 	"io/fs"
 	"net/url"
-	"os"
-	"os/exec"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"text/template"
 	"time"
 
 	"github.com/McKael/madon"
 	vocab "github.com/go-ap/activitypub"
-	"github.com/mariusor/esports-calendar/internal/cmd"
 )
-
-const ExecOpenCmd = "xdg-open"
 
 const maxPostSize = 500
 const titleTpl = `Events for {{ .Format "Monday, 02 Jan 2006" -}}`
@@ -73,32 +67,7 @@ var titleTemplate = template.Must(template.New("daily-PostToMastodon-title").
 type postContent struct {
 	tags     []string
 	Date     time.Time
-	Releases []release
-}
-
-func FormatDuration(d time.Duration) string {
-	label := "hour"
-	val := float64(d) / float64(time.Hour)
-	if d > ResolutionDay {
-		label = "day"
-		val = float64(d) / float64(ResolutionDay)
-	}
-	if d > ResolutionWeek {
-		label = "week"
-		val = float64(d) / float64(ResolutionWeek)
-	}
-	if d > ResolutionMonthish {
-		label = "month"
-		val = float64(d) / float64(ResolutionMonthish)
-	}
-	if d > ResolutionYearish {
-		label = "year"
-		val = float64(d) / float64(ResolutionYearish)
-	}
-	if val != 1.0 && val != -1.0 {
-		label = label + "s"
-	}
-	return fmt.Sprintf("%+.2g%s", val, label)
+	Releases calendar.Events
 }
 
 func stringsContain(sl []string, v string) bool {
@@ -120,35 +89,6 @@ func uniqueValues[T comparable](sl []T, containsFn func(sl []T, u T) bool) []T {
 	return newSl
 }
 
-func removeStrings(s string, replace ...string) string {
-	for _, r := range replace {
-		s = strings.ReplaceAll(s, r, "")
-	}
-	return s
-}
-
-var (
-	repl            = regexp.MustCompile("metal$")
-	toRemoveStrings = []string{"(early)", "(later)", "(mid)", "-", " ", "#", "'"}
-)
-
-func tagNormalize(t string) string {
-	hasHash := len(t) > 2 && t[0] == '#'
-	if hasHash {
-		t = t[1:]
-	}
-	if strings.EqualFold(t, "Post-Metal") {
-		return "postmetal"
-	}
-	if strings.EqualFold(t, "Metal") {
-		return "metal"
-	}
-	t = strings.ToLower(t)
-	t = removeStrings(t, toRemoveStrings...)
-	t = repl.ReplaceAllLiteralString(t, "")
-	return t
-}
-
 func (c postContent) Tags() []string {
 	tags := make([]string, 0)
 	for _, r := range c.Releases {
@@ -164,8 +104,8 @@ type postModel struct {
 	title, content string
 }
 
-func renderLinks(rel release) (string, error) {
-	if len(rel.URI) == 0 {
+func renderLinks(rel calendar.Event) (string, error) {
+	if len(rel.Links) == 0 {
 		return "", fmt.Errorf("no URIs for current release")
 	}
 	contBuff := bytes.NewBuffer(nil)
@@ -175,7 +115,7 @@ func renderLinks(rel release) (string, error) {
 	return contBuff.String(), nil
 }
 
-func renderTitle(gd time.Time, rel []release) (string, error) {
+func renderTitle(gd time.Time, rel calendar.Events) (string, error) {
 	title := bytes.NewBuffer(nil)
 	if err := titleTemplate.Execute(title, gd); err != nil {
 		return "", fmt.Errorf("unable to build post content: %w", err)
@@ -183,11 +123,11 @@ func renderTitle(gd time.Time, rel []release) (string, error) {
 	return title.String(), nil
 }
 
-func renderPosts(d time.Time, rel []release) (string, error) {
+func renderPosts(d time.Time, rel calendar.Events) (string, error) {
 	model := postContent{Date: d, Releases: rel}
 	contBuff := bytes.NewBuffer(nil)
 	if err := contTemplate.Execute(contBuff, model); err != nil {
-		Error("unable to render post %s", err)
+		infFn("unable to render post %s", err)
 		return "", err
 	}
 	return contBuff.String(), nil
@@ -195,13 +135,13 @@ func renderPosts(d time.Time, rel []release) (string, error) {
 
 const unlisted = "unlisted"
 
-type PosterFn func(releases map[time.Time][]release) error
+type PosterFn func(releases map[time.Time]calendar.Events) error
 
 func PostToMastodon(client *madon.Client, withLinks bool) PosterFn {
 	if client == nil {
 		return PostToStdout
 	}
-	return func(groupped map[time.Time][]release) error {
+	return func(groupped map[time.Time]calendar.Events) error {
 		var inReplyTo int64 = 0
 		posts := make([]postModel, 0)
 		linkPosts := make(map[int][]postModel)
@@ -211,8 +151,8 @@ func PostToMastodon(client *madon.Client, withLinks bool) PosterFn {
 				return fmt.Errorf("%s: unable to build post content: %w", client.InstanceURL, err)
 			}
 
-			cleaveFn := func(d time.Time, content *string) func(rel []release) bool {
-				return func(rel []release) bool {
+			cleaveFn := func(d time.Time, content *string) func(rel []calendar.Event) bool {
+				return func(rel []calendar.Event) bool {
 					var err error
 					*content, err = renderPosts(d, rel)
 					if err != nil {
@@ -223,7 +163,7 @@ func PostToMastodon(client *madon.Client, withLinks bool) PosterFn {
 			}
 
 			for {
-				var current []release
+				var current calendar.Events
 				var content string
 				current, releases = cleaveSlice(releases, cleaveFn(d, &content))
 
@@ -254,7 +194,7 @@ func PostToMastodon(client *madon.Client, withLinks bool) PosterFn {
 			if err != nil {
 				return fmt.Errorf("%s: %w", client.InstanceURL, err)
 			} else {
-				Info("Post at: %s", s.URI)
+				infFn("Post at: %s", s.URI)
 			}
 		}
 
@@ -297,100 +237,12 @@ func UpdateMastodonAccount(app *madon.Client, a fs.FS, dryRun bool) error {
 	return nil
 }
 
-func ValidMastodonAuth(c *madon.Client) bool {
-	return ValidMastodonApp(c) && c.UserToken != nil && c.UserToken.AccessToken != ""
-}
-
-func ValidMastodonApp(c *madon.Client) bool {
-	return c != nil && c.Name != "" && c.ID != "" && c.Secret != "" && c.APIBase != "" && c.InstanceURL != ""
-}
-
-func saveMastodonCredentials(c *madon.Client, path string) error {
-	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
-	if err != nil {
-		return fmt.Errorf("unable to open file %w", err)
-	}
-	defer f.Close()
-
-	d := gob.NewEncoder(f)
-	return d.Encode(c)
-}
-
-func loadMastodonCredentials(c *madon.Client, path string) error {
-	f, err := os.OpenFile(path, os.O_RDONLY, 0600)
-	if err != nil {
-		return fmt.Errorf("unable to load credentials file %s: %w", path, err)
-	}
-	defer f.Close()
-	d := gob.NewDecoder(f)
-	return d.Decode(c)
-}
-
 func InstanceName(inst string) string {
 	u, err := url.ParseRequestURI(inst)
 	if err != nil {
 		inst = u.Host
 	}
 	return url.PathEscape(filepath.Clean(filepath.Base(inst)))
-}
-
-func CheckMastodonCredentialsFile(key, secret, token, instance string, dryRun bool, getAccessTokenFn func() (string, error)) (*madon.Client, error) {
-	app := new(madon.Client)
-	path := filepath.Join(cmd.DataPath(), instance)
-	if err := loadMastodonCredentials(app, path); err != nil {
-		if len(key) > 0 && len(secret) > 0 {
-			if len(key) > 0 {
-				app.ID = key
-			}
-			if len(secret) > 0 {
-				app.Secret = secret
-			}
-			app.Name = cmd.AppName
-			app.InstanceURL = "https://" + instance
-			app.APIBase = app.InstanceURL + "/api/v1"
-			app.UserToken = new(madon.UserToken)
-			if len(token) > 0 {
-				app.UserToken.AccessToken = token
-			}
-		} else {
-			if app, err = madon.NewApp(cmd.AppName, cmd.AppWebsite, cmd.AppScopes, "", instance); err != nil {
-				return nil, fmt.Errorf("unable to initialize mastodon application: %w", err)
-			}
-		}
-	}
-	if ValidMastodonAuth(app) {
-		return app, saveMastodonCredentials(app, filepath.Join(cmd.DataPath(), InstanceName(app.InstanceURL)))
-	}
-	if !dryRun {
-		userAuthUri, err := app.LoginOAuth2("", nil)
-		if err != nil {
-			return nil, fmt.Errorf("unable to login to %s: %w", app.InstanceURL, err)
-		}
-		if err = exec.Command(ExecOpenCmd, userAuthUri).Run(); err != nil {
-			Info("unable to use %s to open %s: %s", ExecOpenCmd, app.InstanceURL, err)
-			fmt.Printf("Go to this URL in your browser: %s\n", userAuthUri)
-		}
-		if app.UserToken == nil {
-			app.UserToken = new(madon.UserToken)
-		}
-		tok, err := getAccessTokenFn()
-		if err != nil {
-			return nil, fmt.Errorf("unable to login to %s: %w", app.InstanceURL, err)
-		}
-		if tok == "" {
-			return nil, fmt.Errorf("empty authentication token")
-		}
-		app.UserToken.AccessToken = tok
-		app.UserToken.CreatedAt = time.Now().UnixMilli()
-		if !ValidMastodonAuth(app) {
-			return nil, fmt.Errorf("unable to get user authorization")
-		}
-
-		if err := saveMastodonCredentials(app, app.InstanceURL); err != nil {
-			Info("unable to save credentials: %s", err)
-		}
-	}
-	return app, nil
 }
 
 func splitSlice[T any](sl []T, size int) [][]T {

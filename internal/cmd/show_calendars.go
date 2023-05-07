@@ -33,7 +33,7 @@ func writeHelpLabels(w io.StringWriter, labels ...string) error {
 }
 func showHelp() string {
 	h := strings.Builder{}
-	h.WriteString("Valid calendar types:\n")
+	h.WriteString("Valid calendar Types:\n")
 	h.WriteString("Global:\n")
 	writeHelpLabels(&h, validTypes...)
 	h.WriteString("\n")

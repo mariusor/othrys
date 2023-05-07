@@ -100,7 +100,7 @@ var Fetch = cli.Command{
 
 type cal struct {
 	debug  bool
-	types  []string
+	Types  []string
 	weekly bool
 	err    logFn
 	log    logFn
@@ -117,7 +117,7 @@ func New(debug bool, types ...string) (*cal, error) {
 	}
 	return &cal{
 		debug:  debug,
-		types:  calendar.GetTypes(types),
+		Types:  calendar.GetTypes(types),
 		weekly: true,
 		log:    logFn,
 		err:    errFn,
@@ -135,7 +135,7 @@ func (c cal) Load(startDate time.Time) (calendar.Events, error) {
 	events := make(calendar.Events, 0)
 	urls := make([]toLoad, 0)
 	date := startDate
-	for _, typ := range c.types {
+	for _, typ := range c.Types {
 		urls = append(urls, toLoad{d: date, t: typ})
 	}
 
@@ -177,7 +177,7 @@ func fetchCalendars(c *cli.Context) error {
 		return err
 	}
 
-	if len(f.types) == 0 {
+	if len(f.Types) == 0 {
 		return fmt.Errorf("no valid calendars have been passed: %s", types)
 	}
 	date := start

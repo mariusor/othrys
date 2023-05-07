@@ -17,6 +17,7 @@ type event struct {
 	MatchCount   int
 	Links        []string
 	Canceled     bool
+	TagNames     []string
 }
 
 type events []event
