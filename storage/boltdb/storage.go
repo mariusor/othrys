@@ -29,7 +29,7 @@ type repo struct {
 
 const (
 	DefaultFile = "calendar.bdb"
-	rootBucket = "cal"
+	rootBucket  = "cal"
 )
 
 // Config
@@ -221,7 +221,7 @@ func descendToLastCommonBucket(root *bolt.Bucket, min, max []byte) (*bolt.Bucket
 		if cb == nil {
 			break
 		}
-		lvl = i+1
+		lvl = i + 1
 		b = cb
 	}
 	min = bytes.Join(minPieces[lvl:], pathSeparator)

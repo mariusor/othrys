@@ -6,7 +6,7 @@ import (
 
 	"github.com/urfave/cli"
 
-	"github.com/mariusor/esports-calendar/cmd"
+	"github.com/mariusor/esports-calendar/internal/cmd"
 )
 
 var version = "(unknown)"
@@ -15,13 +15,13 @@ func main() {
 	var err error
 
 	ctl := cli.App{
-		Name:    "ecalctl",
+		Name:    fmt.Sprintf("%sctl", cmd.AppName),
 		Version: version,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "path",
 				Usage: "The path for storage",
-				Value: ".",
+				Value: cmd.DataPath(),
 			},
 		},
 		Commands: []cli.Command{

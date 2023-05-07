@@ -1,9 +1,12 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
+	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"time"
 
 	"github.com/urfave/cli"
@@ -18,6 +21,44 @@ var (
 	defaultDuration  = time.Hour * 336 // 2 weeks
 	defaultStartTime = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 )
+
+const AppName = "othrys"
+
+func MkDirIfNotExists(p string) error {
+	fi, err := os.Stat(p)
+	if err != nil && os.IsNotExist(err) {
+		err = os.MkdirAll(p, os.ModeDir|os.ModePerm|0700)
+	}
+	if err != nil {
+		return err
+	}
+	fi, err = os.Stat(p)
+	if err != nil {
+		return err
+	} else if !fi.IsDir() {
+		return fmt.Errorf("path exists, and is not a folder %s", p)
+	}
+	return nil
+}
+
+func CachePath() string {
+	xdgCachePath, _ := os.UserCacheDir()
+	return filepath.Join(xdgCachePath, AppName)
+}
+
+func DataPath() string {
+	homeDir, _ := os.UserHomeDir()
+	xdgDataPath := filepath.Join(homeDir, ".local", "share")
+	appPath := filepath.Join(xdgDataPath, AppName)
+
+	if _, err := os.Stat(appPath); err != nil && errors.Is(err, os.ErrNotExist) {
+		err := MkDirIfNotExists(appPath)
+		if err != nil {
+			log.Fatalf("Error: %s", err.Error())
+		}
+	}
+	return appPath
+}
 
 var Fetch = cli.Command{
 	Name:  "fetch",

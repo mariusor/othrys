@@ -2,11 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/mariusor/esports-calendar/internal/cmd"
 	"os"
 
 	"github.com/urfave/cli"
-
-	"github.com/mariusor/esports-calendar/cmd"
 )
 
 var version = "(unknown)"
@@ -15,13 +14,13 @@ func main() {
 	var err error
 
 	ctl := cli.App{
-		Name:    "ecalsrv",
+		Name:    fmt.Sprintf("%sical", cmd.AppName),
 		Version: version,
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "path",
 				Usage: "Set storage path",
-				Value: "./",
+				Value: cmd.DataPath(),
 			},
 		},
 		Commands: []cli.Command{

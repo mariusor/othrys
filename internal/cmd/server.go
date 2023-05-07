@@ -37,7 +37,7 @@ var Server = cli.Command{
 
 var wait = 100 * time.Millisecond
 
-var log = func(s string, args ...interface{}) {
+var info = func(s string, args ...interface{}) {
 	fmt.Printf(s+"\n", args...)
 }
 
@@ -47,7 +47,7 @@ var errFn = func(s string, args ...interface{}) {
 
 func serverStart(c *cli.Context) error {
 	listen := fmt.Sprintf("%s:%d", c.String("host"), c.Int("port"))
-	log("Listening on %s", listen)
+	info("Listening on %s", listen)
 
 	// Create a deadline to wait for.
 	ctx, cancel := context.WithTimeout(context.Background(), wait)
@@ -58,18 +58,18 @@ func serverStart(c *cli.Context) error {
 	srvRun, srvStop := w.HttpServer(ctx, w.Handler(ical.Routes(path)), w.ListenOn(listen))
 	w.RegisterSignalHandlers(w.SignalHandlers{
 		syscall.SIGHUP: func(_ chan int) {
-			log("SIGHUP received, reloading configuration")
+			info("SIGHUP received, reloading configuration")
 		},
 		syscall.SIGINT: func(exit chan int) {
-			log("SIGINT received, stopping")
+			info("SIGINT received, stopping")
 			exit <- 0
 		},
 		syscall.SIGTERM: func(exit chan int) {
-			log("SIGITERM received, force stopping")
+			info("SIGITERM received, force stopping")
 			exit <- 0
 		},
 		syscall.SIGQUIT: func(exit chan int) {
-			log("SIGQUIT received, force stopping with core-dump")
+			info("SIGQUIT received, force stopping with core-dump")
 			exit <- 0
 		},
 	}).Exec(func() error {
