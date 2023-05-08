@@ -32,7 +32,7 @@ type Event struct {
 	Links        []string
 	Canceled     bool
 	TagNames     []string
-	Tags         vocab.ItemCollection
+	Tags         vocab.ItemCollection `json:"-"`
 }
 
 type Events []Event
