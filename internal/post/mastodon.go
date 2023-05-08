@@ -2,11 +2,8 @@ package post
 
 import (
 	"bytes"
-	"encoding/base64"
 	"fmt"
-	"github.com/mariusor/esports-calendar/calendar"
-	"io"
-	"io/fs"
+	othrys "github.com/mariusor/esports-calendar"
 	"net/url"
 	"path/filepath"
 	"strings"
@@ -15,6 +12,8 @@ import (
 
 	"github.com/McKael/madon"
 	vocab "github.com/go-ap/activitypub"
+
+	"github.com/mariusor/esports-calendar/calendar"
 )
 
 const maxPostSize = 500
@@ -42,6 +41,16 @@ func (r release) String() string {
 	return ""
 }
 
+var (
+	toRemoveStrings = []string{"(early)", "(later)", "(mid)", "-", " ", "#", "'"}
+)
+
+func removeStrings(s string, replace ...string) string {
+	for _, r := range replace {
+		s = strings.ReplaceAll(s, r, "")
+	}
+	return s
+}
 func sanitize(r release) string {
 	return removeStrings(r.String(), badStrings...)
 }
@@ -95,7 +104,7 @@ func (c postContent) Tags() []string {
 		tags = append(tags, r.TagNames...)
 	}
 	for i, t := range tags {
-		tags[i] = tagNormalize(t)
+		tags[i] = othrys.TagNormalize(t)
 	}
 	return uniqueValues(tags, stringsContain)
 }
@@ -200,41 +209,6 @@ func PostToMastodon(client *madon.Client, withLinks bool) PosterFn {
 
 		return nil
 	}
-}
-
-func loadStaticFile(AccountDetails fs.FS, f string) ([]byte, error) {
-	desc, err := AccountDetails.Open(f)
-	if err != nil {
-		return nil, err
-	}
-
-	return io.ReadAll(desc)
-}
-
-func UpdateMastodonAccount(app *madon.Client, a fs.FS, dryRun bool) error {
-	var namePtr, descPtr, avatarPtr, hdrPtr *string
-	if data, _ := loadStaticFile(a, "static/name.txt"); data != nil {
-		name := strings.TrimSpace(string(data))
-		namePtr = &name
-	}
-	if data, _ := loadStaticFile(a, "static/description.txt"); data != nil {
-		description := strings.TrimSpace(string(data))
-		descPtr = &description
-	}
-	if data, _ := loadStaticFile(a, "static/avatar.png"); data != nil {
-		avatar := fmt.Sprintf("data:image/png;base64,%s", base64.StdEncoding.EncodeToString(data))
-		avatarPtr = &avatar
-	}
-	if data, _ := loadStaticFile(a, "static/header.png"); data != nil {
-		hdr := fmt.Sprintf("data:image/png;base64,%s", base64.StdEncoding.EncodeToString(data))
-		hdrPtr = &hdr
-	}
-	if !dryRun {
-		if _, err := app.UpdateAccount(namePtr, descPtr, avatarPtr, hdrPtr, nil); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func InstanceName(inst string) string {

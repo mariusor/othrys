@@ -1,13 +1,17 @@
 package cmd
 
 import (
+	"encoding/base64"
 	"encoding/gob"
 	"fmt"
 	"github.com/McKael/madon"
+	"io"
+	"io/fs"
 	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -106,4 +110,39 @@ func saveMastodonCredentials(c *madon.Client, path string) error {
 
 	d := gob.NewEncoder(f)
 	return d.Encode(c)
+}
+
+func loadStaticFile(AccountDetails fs.FS, f string) ([]byte, error) {
+	desc, err := AccountDetails.Open(f)
+	if err != nil {
+		return nil, err
+	}
+
+	return io.ReadAll(desc)
+}
+
+func UpdateMastodonAccount(app *madon.Client, a fs.FS, dryRun bool) error {
+	var namePtr, descPtr, avatarPtr, hdrPtr *string
+	if data, _ := loadStaticFile(a, "static/name.txt"); data != nil {
+		name := strings.TrimSpace(string(data))
+		namePtr = &name
+	}
+	if data, _ := loadStaticFile(a, "static/description.txt"); data != nil {
+		description := strings.TrimSpace(string(data))
+		descPtr = &description
+	}
+	if data, _ := loadStaticFile(a, "static/avatar.png"); data != nil {
+		avatar := fmt.Sprintf("data:image/png;base64,%s", base64.StdEncoding.EncodeToString(data))
+		avatarPtr = &avatar
+	}
+	if data, _ := loadStaticFile(a, "static/header.png"); data != nil {
+		hdr := fmt.Sprintf("data:image/png;base64,%s", base64.StdEncoding.EncodeToString(data))
+		hdrPtr = &hdr
+	}
+	if !dryRun {
+		if _, err := app.UpdateAccount(namePtr, descPtr, avatarPtr, hdrPtr, nil); err != nil {
+			return err
+		}
+	}
+	return nil
 }

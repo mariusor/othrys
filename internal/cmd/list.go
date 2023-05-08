@@ -12,7 +12,7 @@ import (
 	"github.com/mariusor/esports-calendar/storage/boltdb"
 )
 
-var List = cli.Command{
+var ListCmd = cli.Command{
 	Name:  "list",
 	Usage: "Lists already saved calendar events",
 	Flags: []cli.Flag{

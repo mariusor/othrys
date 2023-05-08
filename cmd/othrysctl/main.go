@@ -27,9 +27,10 @@ func main() {
 			},
 		},
 		Commands: []cli.Command{
-			cmd.ShowTypes,
-			cmd.Fetch,
-			cmd.List,
+			cmd.ShowTypesCmd,
+			cmd.FetchCmd,
+			cmd.ListCmd,
+			cmd.AuthorizeCmd,
 			cmd.PostCmd,
 		},
 	}

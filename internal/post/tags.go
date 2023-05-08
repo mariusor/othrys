@@ -7,6 +7,8 @@ import (
 	"time"
 
 	vocab "github.com/go-ap/activitypub"
+
+	othrys "github.com/mariusor/esports-calendar"
 )
 
 type tags []string
@@ -37,7 +39,7 @@ func commonTags() vocab.ItemCollection {
 
 func renderTagsText(t tags, tagPref string) string {
 	for i, g := range t {
-		t[i] = tagPref + tagNormalize(g)
+		t[i] = tagPref + othrys.TagNormalize(g)
 	}
 
 	return strings.Join(uniqueValues(t, stringsContain), " ")
@@ -45,7 +47,7 @@ func renderTagsText(t tags, tagPref string) string {
 
 func (t tags) Render(tagPref string) string {
 	for i, g := range t {
-		t[i] = tagPref + tagNormalize(g)
+		t[i] = tagPref + othrys.TagNormalize(g)
 	}
 
 	return strings.Join(uniqueValues(t, stringsContain), " ")

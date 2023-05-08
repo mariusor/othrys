@@ -68,7 +68,7 @@ func DataPath() string {
 	return appPath
 }
 
-var Fetch = cli.Command{
+var FetchCmd = cli.Command{
 	Name:  "fetch",
 	Usage: "Fetches calendar events",
 	Flags: []cli.Flag{

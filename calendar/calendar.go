@@ -219,8 +219,6 @@ func GetCalendarURL(typ string, date time.Time, byWeek bool) (*url.URL, error) {
 }
 
 func LoadEvents(typ string, date time.Time) (Events, error) {
-	var err error
-
 	events := make(Events, 0)
 	u, err := GetCalendarURL(typ, date, false)
 	if err != nil {

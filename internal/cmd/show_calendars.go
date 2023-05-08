@@ -12,7 +12,7 @@ import (
 	"github.com/mariusor/esports-calendar/calendar"
 )
 
-var ShowTypes = cli.Command{
+var ShowTypesCmd = cli.Command{
 	Name:               "calendars",
 	Usage:              "Lists supported calendar type, use --help to see a human readable list",
 	Action:             showCalendars,
