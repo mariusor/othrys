@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"os"
 	"path"
 	"strings"
 	"time"
@@ -32,21 +31,21 @@ var PostCmd = cli.Command{
 			Usage: "Output debug messages",
 		},
 		&cli.StringFlag{
-			Name:  "start",
+			Name:  "date",
 			Usage: "Date at which to start",
 			Value: defaultStartTime.Format("2006-01-02"),
 		},
-		&cli.DurationFlag{
-			Name:  "end",
-			Usage: "Date interval to check",
-			Value: defaultDuration,
+		&cli.StringFlag{
+			Name:  "instance",
+			Usage: "The instance to authenticate against",
+		},
+		&cli.StringFlag{
+			Name:  "type",
+			Usage: "The type of the instance: Mastodon, FedBOX, oni",
+			Value: "oni",
 		},
 	},
 	Action: Post(ResolutionDay),
-}
-
-func errPrint(s string, p ...interface{}) {
-	fmt.Fprintf(os.Stderr, s, p...)
 }
 
 type PostConfig struct {
@@ -142,9 +141,13 @@ func Post(resolution time.Duration) cli.ActionFunc {
 	return func(c *cli.Context) error {
 		conf := PostConfig{
 			DryRun:     c.GlobalBool("dry-run"),
-			Date:       parseStartDate(stringValue(c, "start")),
+			Date:       parseStartDate(stringValue(c, "date")),
 			Resolution: resolution,
+			Path:       c.GlobalString("path"),
 		}
+
+		calendars := stringSliceValues(c, "calendar")
+		calendars = calendar.GetTypes(calendars)
 
 		types := stringSliceValues(c, "type")
 		instances := stringSliceValues(c, "instance")
@@ -186,9 +189,10 @@ func Post(resolution time.Duration) cli.ActionFunc {
 		if len(conf.PostFns) == 0 {
 			conf.PostFns = append(conf.PostFns, post.PostToStdout)
 		}
-		return LoadAndPost(conf)
+		return LoadAndPost(conf, calendars...)
 	}
 }
+
 func LoadAndPost(c PostConfig, types ...string) error {
 	if c.Resolution == 0 {
 		c.Resolution = ResolutionDay
@@ -205,8 +209,8 @@ func LoadAndPost(c PostConfig, types ...string) error {
 
 	repo := boltdb.New(boltdb.Config{
 		Path:  path.Join(c.Path, boltdb.DefaultFile),
-		LogFn: info,
-		ErrFn: errFn,
+		LogFn: boltdb.LoggerFn(c.infFn),
+		ErrFn: boltdb.LoggerFn(c.errFn),
 	})
 
 	releases, err := repo.LoadEvents(storage.Cursor(c.Date, c.Resolution), types...)

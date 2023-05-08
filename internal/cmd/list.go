@@ -32,14 +32,14 @@ var ListCmd = cli.Command{
 		&cli.DurationFlag{
 			Name:  "end",
 			Usage: "Date interval to check",
-			Value: defaultDuration,
+			Value: ResolutionYearish,
 		},
 	},
 	Action: listCalendars,
 }
 
 func listCalendars(c *cli.Context) error {
-	types := c.StringSlice("calendar")
+	types := stringSliceValues(c, "calendar")
 
 	start := time.Now().Add(-1 * defaultDuration)
 	if sf := c.String("start"); len(sf) > 0 {

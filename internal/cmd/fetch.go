@@ -92,7 +92,7 @@ var FetchCmd = cli.Command{
 		&cli.DurationFlag{
 			Name:  "end",
 			Usage: "Date interval to check",
-			Value: defaultDuration,
+			Value: ResolutionYearish,
 		},
 	},
 	Action: fetchCalendars,
@@ -163,7 +163,7 @@ const durationStep = 7 * 24 * time.Hour
 func fetchCalendars(c *cli.Context) error {
 	types := c.StringSlice("calendar")
 
-	start := time.Now().Add(-1 * defaultDuration)
+	start := time.Now().Add(-1 * ResolutionYearish)
 	if sf := c.String("start"); len(sf) > 0 {
 		if sfp, err := time.Parse("2006-01-02", sf); err == nil {
 			start = sfp

@@ -308,8 +308,8 @@ func PostToActivityPub(cl *APClient) PosterFn {
 	return func(groupped map[time.Time]calendar.Events) error {
 		activities := make([]vocab.Activity, 0)
 		for gd, group := range groupped {
-			ob := new(vocab.Object)
-			ob.Type = vocab.NoteType
+			ob := new(vocab.Event)
+			ob.Type = vocab.EventType
 
 			var globalTags vocab.ItemCollection
 			tags := append(defaultActivityPubTags(gd, actor.ID), apTags(group, actor.ID)...)
