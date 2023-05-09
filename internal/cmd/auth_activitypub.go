@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"git.sr.ht/~mariusor/lw"
+	"git.sr.ht/~mariusor/othrys/calendar"
 	"git.sr.ht/~mariusor/tagextractor"
 	vocab "github.com/go-ap/activitypub"
 	"github.com/go-ap/client"
@@ -146,35 +147,53 @@ func CheckFedBOXCredentialsFile(instance, key, secret, token string, dryRun bool
 	return app, saveCredentials(app, filepath.Join(DataPath(), InstanceName(instance)))
 }
 
-func UpdateAPAccount(app *post.APClient, a fs.FS, dryRun bool) error {
-	var name, desc, avatar, hdr string
+func UpdateAPAccount(app *post.APClient, a fs.FS, calendars []string, dryRun bool) error {
+	var name, desc, summary, avatar, hdr string
 
 	logger := lw.Dev()
+
+	md := markdown.New(
+		markdown.HTML(true),
+		markdown.Tables(true),
+		markdown.Linkify(false),
+		markdown.Typographer(true),
+		markdown.Breaks(true),
+	)
+
+	tagextractor.URLGenerator = func(it vocab.Item) vocab.Item {
+		name := othrys.NameOf(it)
+		return app.ID.AddPath(strings.TrimPrefix(name, "#"))
+	}
 
 	var tags vocab.ItemCollection
 	if data, _ := loadStaticFile(a, "name.txt"); data != nil {
 		name = strings.TrimSpace(string(data))
 	}
 	if data, _ := loadStaticFile(a, "description.txt"); data != nil {
-		tagextractor.URLGenerator = func(it vocab.Item) vocab.Item {
-			name := othrys.NameOf(it)
-			return app.ID.AddPath(strings.TrimPrefix(name, "#"))
-		}
 		data, tags = tagextractor.FindAndReplace(bytes.TrimSpace(data))
-
-		md := markdown.New(
-			markdown.HTML(true),
-			markdown.Tables(true),
-			markdown.Linkify(false),
-			markdown.Typographer(true),
-			markdown.Breaks(true),
-		)
 
 		cont := bytes.Buffer{}
 		if err := md.Render(&cont, data); err == nil {
 			desc = cont.String()
 		}
 	}
+	if len(calendars) > 0 {
+		calendarTags := make([]string, len(calendars))
+		for i, c := range calendars {
+			calendarTags[i] = "#" + othrys.TagNormalize(calendar.Labels[c])
+		}
+
+		data, esportTags := tagextractor.FindAndReplace(bytes.TrimSpace([]byte(fmt.Sprintf("eSports calendar bot posting events for %s", strings.Join(calendarTags, ", ")))))
+		if len(esportTags) > 0 {
+			tags = append(tags, esportTags...)
+		}
+
+		sum := bytes.Buffer{}
+		if err := md.Render(&sum, data); err == nil {
+			summary = sum.String()
+		}
+	}
+
 	if data, _ := loadStaticFile(a, "avatar.png"); data != nil {
 		avatar = fmt.Sprintf("data:image/png;base64,%s", base64.RawStdEncoding.EncodeToString(data))
 	}
@@ -197,10 +216,13 @@ func UpdateAPAccount(app *post.APClient, a fs.FS, dryRun bool) error {
 		return err
 	}
 	if len(name) > 0 {
-		actor.Name = othrys.NL(name)
+		actor.PreferredUsername = othrys.NL(name)
 	}
 	if len(desc) > 0 {
 		actor.Content = othrys.NL(desc)
+	}
+	if len(summary) > 0 {
+		actor.Summary = othrys.NL(summary)
 	}
 
 	saveImage := func(iri vocab.IRI, data string) vocab.Activity {
@@ -234,7 +256,9 @@ func UpdateAPAccount(app *post.APClient, a fs.FS, dryRun bool) error {
 		operations = append(operations, saveImage(actor.ID.AddPath("image"), hdr))
 		actor.Icon = actor.ID.AddPath("image")
 	}
-	if tags.Count() > 0 {
+
+	actor.Tag = tags
+	if actor.Tag.Count() > 0 {
 		for _, t := range actor.Tag {
 			if !actor.Tag.Contains(t) {
 				actor.Tag = append(actor.Tag, t)

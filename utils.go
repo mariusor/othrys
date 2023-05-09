@@ -44,12 +44,6 @@ func TagNormalize(t string) string {
 	if hasHash {
 		t = t[1:]
 	}
-	if strings.EqualFold(t, "Post-Metal") {
-		return "postmetal"
-	}
-	if strings.EqualFold(t, "Metal") {
-		return "metal"
-	}
 	t = strings.ToLower(t)
 	t = removeStrings(t, toRemoveStrings...)
 	t = repl.ReplaceAllLiteralString(t, "")

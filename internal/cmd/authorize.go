@@ -95,7 +95,7 @@ func Authorize(c *cli.Context) error {
 			return err
 		}
 		if update && s != nil {
-			return UpdateAPAccount(client, s, dryRun)
+			return UpdateAPAccount(client, s, calendars, dryRun)
 		}
 		info("Success, authorized client for: %s", client.Conf.ClientID)
 	case TypeFedBOX:
@@ -105,7 +105,7 @@ func Authorize(c *cli.Context) error {
 		}
 		if update && s != nil {
 			// Update the ActivityPub Actor with the Avatar/Image/Text
-			return UpdateAPAccount(client, s, dryRun)
+			return UpdateAPAccount(client, s, calendars, dryRun)
 		}
 		info("Success, authorized client for: %s", client.Conf.ClientID)
 	default:
