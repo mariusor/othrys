@@ -134,9 +134,9 @@ func PostToMastodon(client *madon.Client) PosterFn {
 		posts := make([]postModel, 0)
 
 		for d, events := range group {
-			title := bytes.NewBuffer(nil)
-			if err := titleTemplate.Execute(title, d); err != nil {
-				return fmt.Errorf("%s: unable to build post content: %w", client.InstanceURL, err)
+			title, err := renderTitle(d, events)
+			if err != nil {
+				errFn("Unable to render title: %s", err)
 			}
 
 			cleaveFn := func(d time.Time, content *string) func(rel []calendar.Event) bool {
@@ -154,7 +154,7 @@ func PostToMastodon(client *madon.Client) PosterFn {
 				var content string
 				_, events = cleaveSlice(events, cleaveFn(d, &content))
 
-				posts = append(posts, postModel{title: title.String(), content: content})
+				posts = append(posts, postModel{title: title, content: content})
 				if events == nil {
 					break
 				}

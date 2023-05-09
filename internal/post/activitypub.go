@@ -52,7 +52,7 @@ var (
 	errRenderer = render.New(defaultRenderOptions)
 	ren         = render.New(defaultRenderOptions)
 
-	contHTMLTemplate = template.Must(template.New("daily-PostToActivityPub").
+	contHTMLTemplate = template.Must(template.New("daily-ToActivityPub").
 				Funcs(template.FuncMap{
 			"sanitize":   sanitize,
 			"lower":      strings.ToLower,
@@ -60,7 +60,7 @@ var (
 			"commonTags": commonTags,
 		}).Parse(eventContentTpl))
 
-	titleHTMLTemplate = template.Must(template.New("daily-PostToActivityPub-title").
+	titleHTMLTemplate = template.Must(template.New("daily-ToActivityPub-title").
 				Funcs(template.FuncMap{
 			"sanitize": sanitize,
 		}).Parse(eventTitleTpl))
