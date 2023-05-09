@@ -8,7 +8,7 @@ import (
 
 const dateFmt = "2006-01-02 15:04"
 
-func PostToStdout(groups map[time.Time]calendar.Events) error {
+func ToStdout(groups map[time.Time]calendar.Events) error {
 	f := log.Flags()
 	log.SetFlags(0)
 	for date, releases := range groups {

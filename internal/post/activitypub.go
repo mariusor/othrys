@@ -281,7 +281,7 @@ func removeExistingTags(ctx context.Context, client client.PubGetter, actor *voc
 	return tagsToCreate, nil
 }
 
-func PostToActivityPub(cl *APClient) PosterFn {
+func ToActivityPub(cl *APClient) PosterFn {
 	logger := lw.Dev()
 
 	tok := cl.Tok.AccessToken
@@ -300,7 +300,7 @@ func PostToActivityPub(cl *APClient) PosterFn {
 	actor, err := ap.Actor(c, cl.ID)
 	if err != nil {
 		errFn("%s, falling back to just printing", err)
-		return PostToStdout
+		return ToStdout
 	}
 
 	if err := acceptFollows(actor, ap); err != nil {

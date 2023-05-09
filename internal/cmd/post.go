@@ -163,7 +163,7 @@ func Post(resolution time.Duration) cli.ActionFunc {
 					if !typeIsAllowed(types, TypeMastodon) || !shouldPostToInstance(instances, cl.InstanceURL) {
 						continue
 					}
-					conf.PostFns = append(conf.PostFns, post.PostToMastodon(cl))
+					conf.PostFns = append(conf.PostFns, post.ToMastodon(cl))
 				case *post.APClient:
 					if !typeIsAllowed(types, TypeFedBOX, TypeONI) ||
 						!shouldPostToInstance(instances, cl.ID.String()) {
@@ -182,12 +182,12 @@ func Post(resolution time.Duration) cli.ActionFunc {
 							return fmt.Errorf("unable to get new token for %s: %w", cl.ID, err)
 						}
 					}
-					conf.PostFns = append(conf.PostFns, post.PostToActivityPub(cl))
+					conf.PostFns = append(conf.PostFns, post.ToActivityPub(cl))
 				}
 			}
 		}
 		if len(conf.PostFns) == 0 {
-			conf.PostFns = append(conf.PostFns, post.PostToStdout)
+			conf.PostFns = append(conf.PostFns, post.ToStdout)
 		}
 		return LoadAndPost(conf, calendars...)
 	}

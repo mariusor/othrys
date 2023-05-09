@@ -125,9 +125,9 @@ const unlisted = "unlisted"
 
 type PosterFn func(events map[time.Time]calendar.Events) error
 
-func PostToMastodon(client *madon.Client) PosterFn {
+func ToMastodon(client *madon.Client) PosterFn {
 	if client == nil {
-		return PostToStdout
+		return ToStdout
 	}
 	return func(group map[time.Time]calendar.Events) error {
 		var inReplyTo int64 = 0
