@@ -25,8 +25,8 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/sync/errgroup"
 
-	othrys "github.com/mariusor/esports-calendar"
-	"github.com/mariusor/esports-calendar/calendar"
+	"git.sr.ht/~mariusor/othrys"
+	"git.sr.ht/~mariusor/othrys/calendar"
 )
 
 const eventTitleTpl = `{{ if gt (len .Event.Category) 0}}{{.Event.Category}}: {{ end }}{{ .Event.Stage }}`

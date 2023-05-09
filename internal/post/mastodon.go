@@ -9,9 +9,9 @@ import (
 	"text/template"
 	"time"
 
+	"git.sr.ht/~mariusor/othrys"
+	"git.sr.ht/~mariusor/othrys/calendar"
 	"github.com/McKael/madon"
-	othrys "github.com/mariusor/esports-calendar"
-	"github.com/mariusor/esports-calendar/calendar"
 )
 
 const maxPostSize = 500

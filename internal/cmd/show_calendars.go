@@ -2,14 +2,14 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/mariusor/esports-calendar/calendar/liquid"
-	"github.com/mariusor/esports-calendar/calendar/plusforward"
 	"io"
 	"strings"
 
 	"github.com/urfave/cli"
 
-	"github.com/mariusor/esports-calendar/calendar"
+	"git.sr.ht/~mariusor/othrys/calendar"
+	"git.sr.ht/~mariusor/othrys/calendar/liquid"
+	"git.sr.ht/~mariusor/othrys/calendar/plusforward"
 )
 
 var ShowTypesCmd = cli.Command{

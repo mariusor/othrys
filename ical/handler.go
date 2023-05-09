@@ -12,9 +12,9 @@ import (
 
 	"github.com/soh335/ical"
 
-	"github.com/mariusor/esports-calendar/calendar"
-	"github.com/mariusor/esports-calendar/storage"
-	"github.com/mariusor/esports-calendar/storage/boltdb"
+	"git.sr.ht/~mariusor/othrys/calendar"
+	"git.sr.ht/~mariusor/othrys/storage"
+	"git.sr.ht/~mariusor/othrys/storage/boltdb"
 )
 
 type cal struct {

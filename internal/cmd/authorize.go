@@ -8,9 +8,9 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/urfave/cli"
 
-	othrys "github.com/mariusor/esports-calendar"
-	"github.com/mariusor/esports-calendar/calendar"
-	"github.com/mariusor/esports-calendar/internal/post"
+	"git.sr.ht/~mariusor/othrys"
+	"git.sr.ht/~mariusor/othrys/calendar"
+	"git.sr.ht/~mariusor/othrys/internal/post"
 )
 
 var AuthorizeCmd = cli.Command{

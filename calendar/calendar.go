@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mariusor/esports-calendar/calendar/liquid"
-	"github.com/mariusor/esports-calendar/calendar/plusforward"
+	"git.sr.ht/~mariusor/othrys/calendar/liquid"
+	"git.sr.ht/~mariusor/othrys/calendar/plusforward"
 )
 
 var DefaultCalendars = []string{liquid.LabelTeamLiquid, plusforward.LabelPlusForward}

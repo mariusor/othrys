@@ -9,8 +9,8 @@ import (
 
 	"github.com/urfave/cli"
 
+	"git.sr.ht/~mariusor/othrys/ical"
 	w "git.sr.ht/~mariusor/wrapper"
-	"github.com/mariusor/esports-calendar/ical"
 )
 
 var Server = cli.Command{

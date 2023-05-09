@@ -12,8 +12,8 @@ import (
 
 	bolt "go.etcd.io/bbolt"
 
-	"github.com/mariusor/esports-calendar/calendar"
-	"github.com/mariusor/esports-calendar/storage"
+	"git.sr.ht/~mariusor/othrys/calendar"
+	"git.sr.ht/~mariusor/othrys/storage"
 )
 
 type LoggerFn func(string, ...interface{})

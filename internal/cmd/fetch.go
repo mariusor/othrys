@@ -11,8 +11,8 @@ import (
 
 	"github.com/urfave/cli"
 
-	"github.com/mariusor/esports-calendar/calendar"
-	"github.com/mariusor/esports-calendar/storage/boltdb"
+	"git.sr.ht/~mariusor/othrys/calendar"
+	"git.sr.ht/~mariusor/othrys/storage/boltdb"
 )
 
 var now = time.Now()

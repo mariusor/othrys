@@ -1,9 +1,10 @@
 package post
 
 import (
-	"github.com/mariusor/esports-calendar/calendar"
 	"log"
 	"time"
+
+	"git.sr.ht/~mariusor/othrys/calendar"
 )
 
 const dateFmt = "2006-01-02 15:04"

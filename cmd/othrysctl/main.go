@@ -6,7 +6,7 @@ import (
 
 	"github.com/urfave/cli"
 
-	"github.com/mariusor/esports-calendar/internal/cmd"
+	"git.sr.ht/~mariusor/othrys/internal/cmd"
 )
 
 func main() {

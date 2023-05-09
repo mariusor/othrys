@@ -1,4 +1,4 @@
-module github.com/mariusor/esports-calendar
+module git.sr.ht/~mariusor/othrys
 
 go 1.19
 
@@ -8,6 +8,8 @@ require (
 	git.sr.ht/~mariusor/wrapper v0.0.0-20230104101555-9bfc303f6588
 	github.com/McKael/madon v2.3.0+incompatible
 	github.com/PuerkitoBio/goquery v1.8.1
+	github.com/charmbracelet/bubbles v0.15.0
+	github.com/charmbracelet/bubbletea v0.23.2
 	github.com/go-ap/activitypub v0.0.0-20230509081506-c63baa5ec992
 	github.com/go-ap/client v0.0.0-20230509081643-66f4b336aaef
 	github.com/go-ap/errors v0.0.0-20221205040414-01c1adfc98ea
@@ -25,8 +27,6 @@ require (
 	github.com/andybalholm/cascadia v1.3.2 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymanbagabas/go-osc52 v1.2.1 // indirect
-	github.com/charmbracelet/bubbles v0.15.0 // indirect
-	github.com/charmbracelet/bubbletea v0.23.2 // indirect
 	github.com/charmbracelet/lipgloss v0.6.0 // indirect
 	github.com/containerd/console v1.0.3 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect

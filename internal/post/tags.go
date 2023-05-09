@@ -8,7 +8,7 @@ import (
 
 	vocab "github.com/go-ap/activitypub"
 
-	othrys "github.com/mariusor/esports-calendar"
+	"git.sr.ht/~mariusor/othrys"
 )
 
 type tags []string

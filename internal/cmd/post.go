@@ -12,10 +12,10 @@ import (
 	"github.com/urfave/cli"
 	"golang.org/x/oauth2"
 
-	"github.com/mariusor/esports-calendar/calendar"
-	"github.com/mariusor/esports-calendar/internal/post"
-	"github.com/mariusor/esports-calendar/storage"
-	"github.com/mariusor/esports-calendar/storage/boltdb"
+	"git.sr.ht/~mariusor/othrys/calendar"
+	"git.sr.ht/~mariusor/othrys/internal/post"
+	"git.sr.ht/~mariusor/othrys/storage"
+	"git.sr.ht/~mariusor/othrys/storage/boltdb"
 )
 
 var PostCmd = cli.Command{

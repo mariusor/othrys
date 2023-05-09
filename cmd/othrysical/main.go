@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/mariusor/esports-calendar/internal/cmd"
 	"os"
 
 	"github.com/urfave/cli"
+
+	"git.sr.ht/~mariusor/othrys/internal/cmd"
 )
 
 var version = "(unknown)"

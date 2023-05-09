@@ -6,10 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/gob"
 	"fmt"
-	"git.sr.ht/~mariusor/tagextractor"
-	othrys "github.com/mariusor/esports-calendar"
-	"github.com/mariusor/esports-calendar/internal/post"
-	"gitlab.com/golang-commonmark/markdown"
 	"io/fs"
 	"net/http"
 	"os"
@@ -18,10 +14,15 @@ import (
 	"time"
 
 	"git.sr.ht/~mariusor/lw"
+	"git.sr.ht/~mariusor/tagextractor"
 	vocab "github.com/go-ap/activitypub"
 	"github.com/go-ap/client"
 	"github.com/go-ap/errors"
+	"gitlab.com/golang-commonmark/markdown"
 	"golang.org/x/oauth2"
+
+	"git.sr.ht/~mariusor/othrys"
+	"git.sr.ht/~mariusor/othrys/internal/post"
 )
 
 func CheckONICredentialsFile(instance string, cl *http.Client, secret, token string, dryRun bool) (*post.APClient, error) {

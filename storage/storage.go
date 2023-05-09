@@ -3,7 +3,7 @@ package storage
 import (
 	"time"
 
-	"github.com/mariusor/esports-calendar/calendar"
+	"git.sr.ht/~mariusor/othrys/calendar"
 )
 
 type DateCursor struct {
