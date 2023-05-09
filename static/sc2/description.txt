@@ -1,0 +1,9 @@
+Starcraft 2 e-sports calendar bot.
+
+It posts events at their start time.
+
+Software by <a href="https://metalhead.club/@mariusor">@mariusor</a>: <a href="https://gith.sr.ht/~mariusor/othrys">https://gith.sr.ht/~mariusor/othrys</a>.
+
+The releases are based on data publicly available on the calendars from <a href="https://tl.net/">TeamLiquid</a>.
+
+Many thanks to all the volunteers that publish it.

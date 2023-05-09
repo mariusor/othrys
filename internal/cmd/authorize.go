@@ -8,6 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/urfave/cli"
 
+	othrys "github.com/mariusor/esports-calendar"
 	"github.com/mariusor/esports-calendar/internal/post"
 )
 
@@ -55,7 +56,20 @@ func Authorize(c *cli.Context) error {
 	dryRun := c.GlobalBool("dry-run")
 	update := c.Bool("update-account")
 
-	var s fs.FS
+	calendars := stringSliceValues(c, "calendar")
+	calendars = calendar.GetTypes(calendars)
+
+	s, err := fs.Sub(othrys.AccountDetails, "static")
+	if err != nil {
+		errFn("Unable to find folder with calendars description and names.")
+	} else {
+		if len(calendars) == 1 {
+			s, err = fs.Sub(s, calendars[0])
+			if err != nil {
+				errFn("Unable to find folder with calendars description and names.")
+			}
+		}
+	}
 
 	switch typ {
 	case TypeMastodon:
@@ -64,7 +78,7 @@ func Authorize(c *cli.Context) error {
 		if err != nil {
 			return err
 		}
-		if update {
+		if update && s != nil {
 			return UpdateMastodonAccount(client, s, dryRun)
 		}
 		info("Success, authorized client for: %s", client.InstanceURL)
@@ -74,8 +88,7 @@ func Authorize(c *cli.Context) error {
 		if err != nil {
 			return err
 		}
-		if update {
-			// Update the ActivityPub Actor with the Avatar/Image/Text
+		if update && s != nil {
 			return UpdateAPAccount(client, s, dryRun)
 		}
 		info("Success, authorized client for: %s", client.Conf.ClientID)
@@ -84,9 +97,9 @@ func Authorize(c *cli.Context) error {
 		if err != nil {
 			return err
 		}
-		if update {
+		if update && s != nil {
 			// Update the ActivityPub Actor with the Avatar/Image/Text
-			//return rattlehead.UpdateAPAccount(client, dryRun)
+			return UpdateAPAccount(client, s, dryRun)
 		}
 		info("Success, authorized client for: %s", client.Conf.ClientID)
 	default:

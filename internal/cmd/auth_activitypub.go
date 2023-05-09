@@ -151,10 +151,10 @@ func UpdateAPAccount(app *post.APClient, a fs.FS, dryRun bool) error {
 	logger := lw.Dev()
 
 	var tags vocab.ItemCollection
-	if data, _ := loadStaticFile(a, "static/name.txt"); data != nil {
+	if data, _ := loadStaticFile(a, "name.txt"); data != nil {
 		name = strings.TrimSpace(string(data))
 	}
-	if data, _ := loadStaticFile(a, "static/description.txt"); data != nil {
+	if data, _ := loadStaticFile(a, "description.txt"); data != nil {
 		tagextractor.URLGenerator = func(it vocab.Item) vocab.Item {
 			name := othrys.NameOf(it)
 			return app.ID.AddPath(strings.TrimPrefix(name, "#"))
@@ -174,10 +174,10 @@ func UpdateAPAccount(app *post.APClient, a fs.FS, dryRun bool) error {
 			desc = cont.String()
 		}
 	}
-	if data, _ := loadStaticFile(a, "static/avatar.png"); data != nil {
+	if data, _ := loadStaticFile(a, "avatar.png"); data != nil {
 		avatar = fmt.Sprintf("data:image/png;base64,%s", base64.RawStdEncoding.EncodeToString(data))
 	}
-	if data, _ := loadStaticFile(a, "static/header.png"); data != nil {
+	if data, _ := loadStaticFile(a, "header.png"); data != nil {
 		hdr = fmt.Sprintf("data:image/png;base64,%s", base64.RawStdEncoding.EncodeToString(data))
 	}
 	if app.ID == "" {

@@ -112,8 +112,8 @@ func saveMastodonCredentials(c *madon.Client, path string) error {
 	return d.Encode(c)
 }
 
-func loadStaticFile(AccountDetails fs.FS, f string) ([]byte, error) {
-	desc, err := AccountDetails.Open(f)
+func loadStaticFile(s fs.FS, f string) ([]byte, error) {
+	desc, err := s.Open(f)
 	if err != nil {
 		return nil, err
 	}
