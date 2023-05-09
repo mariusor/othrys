@@ -75,6 +75,7 @@ var FetchCmd = cli.Command{
 		&cli.StringSliceFlag{
 			Name:  "calendar",
 			Usage: "Which calendars to load",
+			Value: (*cli.StringSlice)(&calendar.DefaultCalendars),
 		},
 		&cli.BoolFlag{
 			Name:  "debug",

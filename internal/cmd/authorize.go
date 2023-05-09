@@ -9,6 +9,7 @@ import (
 	"github.com/urfave/cli"
 
 	othrys "github.com/mariusor/esports-calendar"
+	"github.com/mariusor/esports-calendar/calendar"
 	"github.com/mariusor/esports-calendar/internal/post"
 )
 
@@ -38,6 +39,11 @@ var AuthorizeCmd = cli.Command{
 			Name:  "type",
 			Usage: "The type of the instance: Mastodon, FedBOX, oni",
 			Value: "mastodon",
+		},
+		&cli.StringSliceFlag{
+			Name:  "calendar",
+			Usage: "The calendars that the application will serve",
+			Value: (*cli.StringSlice)(&calendar.DefaultCalendars),
 		},
 		&cli.BoolFlag{
 			Name:  "update-account",

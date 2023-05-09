@@ -19,6 +19,7 @@ var ListCmd = cli.Command{
 		&cli.StringSliceFlag{
 			Name:  "calendar",
 			Usage: "Which calendars to list",
+			Value: (*cli.StringSlice)(&calendar.DefaultCalendars),
 		},
 		&cli.BoolFlag{
 			Name:  "debug",

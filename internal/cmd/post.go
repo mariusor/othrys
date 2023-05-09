@@ -24,7 +24,8 @@ var PostCmd = cli.Command{
 	Flags: []cli.Flag{
 		&cli.StringSliceFlag{
 			Name:  "calendar",
-			Usage: "Which calendars to list",
+			Usage: "Which calendars to post",
+			Value: (*cli.StringSlice)(&calendar.DefaultCalendars),
 		},
 		&cli.BoolFlag{
 			Name:  "debug",
