@@ -6,5 +6,5 @@ After=network.target
 WorkingDirectory=DATA_DIR
 Type=oneshot
 
-ExecStart=BIN_DIR/ecalctl toot --type CALENDARS
+ExecStart=BIN_DIR/BIN_CTL toot --type CALENDARS
 

@@ -64,7 +64,8 @@ coverage: test
 units: $(patsubst units/%.service.in, units/%.service, $(wildcard units/*.service.in))
 
 units/%.service: units/%.service.in
-	$(M4) -DCALENDARS=$(CALENDARS) -DDATA_DIR=$(DATA_DIR) -DBIN_DIR=$(BIN_DIR) $< >$@
+	$(M4) -DCALENDARS=$(CALENDARS) -DDATA_DIR=$(DATA_DIR) -DBIN_DIR=$(BIN_DIR) \
+		-DBIN_CTL=$(BIN_CTL) -DBIN_ICAL=$(DBIN_ICAL) $< >$@
 
 mod_tidy:
 	$(GO) mod tidy
