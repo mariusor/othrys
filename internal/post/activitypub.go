@@ -29,9 +29,8 @@ import (
 	"github.com/mariusor/esports-calendar/calendar"
 )
 
-const releaseHTMLTpl = `<h1>{{ .Event.Stage }}{{ if gt (len .Event.Category) 0}} {{.Event.Category}}{{ end }}</h1>
-<div> {{ .Event.Content }}</div>
-`
+const eventTitleTpl = `{{ if gt (len .Event.Category) 0}}{{.Event.Category}}: {{ end }}{{ .Event.Stage }}`
+const eventContentTpl = `{{ if gt (len .Event.Content) 0}}<div>{{ .Event.Content }}</div>{{ end }}`
 
 var (
 	defaultRenderOptions = render.Options{
@@ -59,7 +58,12 @@ var (
 			"lower":      strings.ToLower,
 			"renderTag":  renderTagHTML,
 			"commonTags": commonTags,
-		}).Parse(releaseHTMLTpl))
+		}).Parse(eventContentTpl))
+
+	titleHTMLTemplate = template.Must(template.New("daily-PostToActivityPub-title").
+				Funcs(template.FuncMap{
+			"sanitize": sanitize,
+		}).Parse(eventTitleTpl))
 )
 
 var infFn client.LogFn = func(s string, i ...interface{}) {}
@@ -180,12 +184,20 @@ func defaultActivityPubTags(date time.Time, baseURL vocab.IRI) vocab.ItemCollect
 }
 
 type apContent struct {
-	tags  []string
 	Event calendar.Event
 	Tags  vocab.ItemCollection
 }
 
-func renderHTMLObject(rel calendar.Event, tags vocab.ItemCollection) (string, error) {
+func renderEventTitle(rel calendar.Event) (string, error) {
+	model := apContent{Event: rel}
+	title := bytes.NewBuffer(nil)
+	if err := titleHTMLTemplate.Execute(title, model); err != nil {
+		return "", fmt.Errorf("unable to build post content: %w", err)
+	}
+	return title.String(), nil
+}
+
+func renderEventContent(rel calendar.Event, tags vocab.ItemCollection) (string, error) {
 	model := apContent{Event: rel, Tags: tags}
 	contBuff := bytes.NewBuffer(nil)
 	if err := contHTMLTemplate.Execute(contBuff, model); err != nil {
@@ -297,21 +309,22 @@ func PostToActivityPub(cl *APClient) PosterFn {
 
 	ctx := context.Background()
 
-	return func(groupped map[time.Time]calendar.Events) error {
+	return func(group map[time.Time]calendar.Events) error {
 		activities := make([]vocab.Activity, 0)
-		for gd, group := range groupped {
-			for _, rel := range group {
+		for gd, events := range group {
+			object := make(vocab.ItemCollection, 0)
+			for _, event := range events {
 				var globalTags vocab.ItemCollection
 
 				ob := new(vocab.Event)
 				ob.Type = vocab.EventType
 
-				ob.StartTime = rel.StartTime
-				ob.EndTime = rel.StartTime.Add(rel.Duration)
-				ob.Duration = rel.Duration
-				ob.Updated = rel.LastModified
+				ob.StartTime = event.StartTime
+				ob.EndTime = event.StartTime.Add(event.Duration)
+				ob.Duration = event.Duration
+				ob.Updated = event.LastModified
 
-				tags := append(defaultActivityPubTags(rel.StartTime, actor.ID), apTags(rel, actor.ID)...)
+				tags := append(defaultActivityPubTags(event.StartTime, actor.ID), apTags(event, actor.ID)...)
 				toCreateTags, err := removeExistingTags(ctx, ap, actor, tags)
 				if err != nil {
 					infFn("Error when loading tags from server: %s", err)
@@ -320,22 +333,24 @@ func PostToActivityPub(cl *APClient) PosterFn {
 					activities = append(activities, othrys.WrapObjectInCreate(*actor, toCreateTags))
 				}
 
-				rel, globalTags = loadTagsToEvent(rel, tags)
+				event, globalTags = loadTagsToEvent(event, tags)
 
-				content, err := renderHTMLObject(rel, globalTags)
+				content, err := renderEventContent(event, globalTags)
 				if err != nil {
 					errFn("Unable to render HTML object: %s", err)
 					continue
 				}
 
-				ob.Content = othrys.NL(content)
+				if len(content) > 0 {
+					ob.Content = othrys.NL(content)
+				}
 				ob.Tag = tags
 
-				title, err := renderTitle(rel.StartTime, group)
+				title, err := renderEventTitle(event)
 				if err == nil {
 					ob.Name = othrys.NL(title)
 				}
-				if source, err := renderPosts(gd, calendar.Events{rel}); err == nil {
+				if source, err := renderPosts(gd, calendar.Events{event}); err == nil {
 					ob.Source = vocab.Source{
 						MediaType: "text/markdown",
 						Content:   othrys.NL(source),
@@ -345,8 +360,9 @@ func PostToActivityPub(cl *APClient) PosterFn {
 				ob.To = vocab.ItemCollection{vocab.PublicNS}
 				ob.CC = vocab.ItemCollection{vocab.Followers.Of(actor)}
 
-				activities = append(activities, othrys.WrapObjectInCreate(*actor, ob))
+				object = append(object, ob)
 			}
+			activities = append(activities, othrys.WrapObjectInCreate(*actor, object))
 		}
 		(OperationsBatch{AP: ap, Ops: activities}).Send()
 

@@ -241,7 +241,7 @@ func getEventsForTimeAndResolution(rel calendar.Events, when time.Time, resoluti
 	periodRel := make([]calendar.Event, 0)
 
 	for _, r := range rel {
-		hours := when.Sub(r.StartTime).Truncate(resolution).Hours()
+		hours := when.Sub(r.StartTime).Round(resolution).Hours()
 		if hours > -0.5*resolution.Hours() && hours <= 0.5*resolution.Hours() {
 			periodRel = append(periodRel, r)
 		}

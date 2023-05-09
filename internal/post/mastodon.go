@@ -10,15 +10,13 @@ import (
 	"time"
 
 	"github.com/McKael/madon"
-	vocab "github.com/go-ap/activitypub"
-
 	othrys "github.com/mariusor/esports-calendar"
 	"github.com/mariusor/esports-calendar/calendar"
 )
 
 const maxPostSize = 500
-const titleTpl = `Events for {{ .Format "Monday, 02 Jan 2006" -}}`
-const releaseTpl = `{{- range $event := .Events }}
+const mastodonTitleTpl = `Events for {{ .Format "Monday, 02 Jan 2006" -}}`
+const mastodonContentTpl = `{{- range $event := .Events }}
 {{ $event | sanitize }} {{ renderTags $event.TagNames "#" }}
 {{ end }}
 #{{ .Date.Month.String | lower }} {{range $typ := .Types }} #{{ $typ}}{{ end }} #esports #calendar`
@@ -31,16 +29,6 @@ const linksTpl = `{{ . | sanitize }}
 
 var badStrings = []string{"​"}
 
-type release struct {
-	tags     vocab.ItemCollection
-	URI      string
-	TagNames []string
-}
-
-func (r release) String() string {
-	return ""
-}
-
 var (
 	toRemoveStrings = []string{"(early)", "(later)", "(mid)", "-", " ", "#", "'"}
 )
@@ -51,7 +39,8 @@ func removeStrings(s string, replace ...string) string {
 	}
 	return s
 }
-func sanitize(r release) string {
+
+func sanitize(r calendar.Event) string {
 	return removeStrings(r.String(), badStrings...)
 }
 
@@ -66,12 +55,12 @@ var contTemplate = template.Must(template.New("daily-PostToMastodon").
 		"sanitize":   sanitize,
 		"lower":      strings.ToLower,
 		"renderTags": renderTagsText,
-	}).Parse(releaseTpl))
+	}).Parse(mastodonContentTpl))
 
 var titleTemplate = template.Must(template.New("daily-PostToMastodon-title").
 	Funcs(template.FuncMap{
 		"sanitize": sanitize,
-	}).Parse(titleTpl))
+	}).Parse(mastodonTitleTpl))
 
 type postContent struct {
 	tags   []string
@@ -114,17 +103,6 @@ type postModel struct {
 	title, content string
 }
 
-func renderLinks(rel calendar.Event) (string, error) {
-	if len(rel.Links) == 0 {
-		return "", fmt.Errorf("no URIs for current release")
-	}
-	contBuff := bytes.NewBuffer(nil)
-	if err := linksTemplate.Execute(contBuff, rel); err != nil {
-		return "", fmt.Errorf("unable to generate PostToMastodon %w", err)
-	}
-	return contBuff.String(), nil
-}
-
 func renderTitle(gd time.Time, rel calendar.Events) (string, error) {
 	title := bytes.NewBuffer(nil)
 	if err := titleTemplate.Execute(title, gd); err != nil {
@@ -145,17 +123,17 @@ func renderPosts(d time.Time, rel calendar.Events) (string, error) {
 
 const unlisted = "unlisted"
 
-type PosterFn func(releases map[time.Time]calendar.Events) error
+type PosterFn func(events map[time.Time]calendar.Events) error
 
 func PostToMastodon(client *madon.Client) PosterFn {
 	if client == nil {
 		return PostToStdout
 	}
-	return func(groupped map[time.Time]calendar.Events) error {
+	return func(group map[time.Time]calendar.Events) error {
 		var inReplyTo int64 = 0
 		posts := make([]postModel, 0)
 
-		for d, releases := range groupped {
+		for d, events := range group {
 			title := bytes.NewBuffer(nil)
 			if err := titleTemplate.Execute(title, d); err != nil {
 				return fmt.Errorf("%s: unable to build post content: %w", client.InstanceURL, err)
@@ -174,10 +152,10 @@ func PostToMastodon(client *madon.Client) PosterFn {
 
 			for {
 				var content string
-				_, releases = cleaveSlice(releases, cleaveFn(d, &content))
+				_, events = cleaveSlice(events, cleaveFn(d, &content))
 
 				posts = append(posts, postModel{title: title.String(), content: content})
-				if releases == nil {
+				if events == nil {
 					break
 				}
 			}
