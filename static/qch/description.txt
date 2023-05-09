@@ -2,7 +2,7 @@ Quake e-sports calendar bot.
 
 It posts events at their start time.
 
-Software by <a href="https://metalhead.club/@mariusor">@mariusor</a>: <a href="https://gith.sr.ht/~mariusor/othrys">https://gith.sr.ht/~mariusor/othrys</a>.
+Software by <a href="https://metalhead.club/@mariusor">@mariusor</a>: <a href="https://git.sr.ht/~mariusor/othrys">https://git.sr.ht/~mariusor/othrys</a>.
 
 The releases are based on data publicly available on the calendar from <a href="https://www.plusforward.net/">PlusForward</a>.
 
