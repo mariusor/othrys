@@ -6,7 +6,6 @@ import (
 	"crypto/tls"
 	"encoding/gob"
 	"fmt"
-	othrys "github.com/mariusor/esports-calendar"
 	"html/template"
 	"io/fs"
 	"net"
@@ -26,10 +25,13 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/sync/errgroup"
 
+	othrys "github.com/mariusor/esports-calendar"
 	"github.com/mariusor/esports-calendar/calendar"
 )
 
-const releaseHTMLTpl = ``
+const releaseHTMLTpl = `<h1>{{ .Event.Stage }}{{ if gt (len .Event.Category) 0}} {{.Event.Category}}{{ end }}</h1>
+<div> {{ .Event.Content }}</div>
+`
 
 var (
 	defaultRenderOptions = render.Options{
@@ -96,15 +98,10 @@ func newActivityPubTag(tag string, baseURL vocab.IRI) *vocab.Object {
 	return t
 }
 
-func apTags(releases calendar.Events, baseURL vocab.IRI) vocab.ItemCollection {
-	if len(releases) == 0 {
-		return nil
-	}
+func apTags(rel calendar.Event, baseURL vocab.IRI) vocab.ItemCollection {
 	names := make([]string, 0)
-	for _, rel := range releases {
-		for _, tag := range rel.TagNames {
-			names = append(names, tag)
-		}
+	for _, tag := range rel.TagNames {
+		names = append(names, tag)
 	}
 
 	tags := make(vocab.ItemCollection, 0)
@@ -177,20 +174,19 @@ func acceptFollows(actor *vocab.Actor, cl client.PubClient) error {
 func defaultActivityPubTags(date time.Time, baseURL vocab.IRI) vocab.ItemCollection {
 	return vocab.ItemCollection{
 		newActivityPubTag(strings.ToLower(date.Month().String()), baseURL),
-		newActivityPubTag("metal", baseURL),
-		newActivityPubTag("releases", baseURL),
+		newActivityPubTag("esports", baseURL),
+		newActivityPubTag("calendar", baseURL),
 	}
 }
 
 type apContent struct {
-	tags     []string
-	Date     time.Time
-	Releases calendar.Events
-	Tags     vocab.ItemCollection
+	tags  []string
+	Event calendar.Event
+	Tags  vocab.ItemCollection
 }
 
-func renderHTMLObject(d time.Time, rel calendar.Events, tags vocab.ItemCollection) (string, error) {
-	model := apContent{Date: d, Releases: rel, Tags: tags}
+func renderHTMLObject(rel calendar.Event, tags vocab.ItemCollection) (string, error) {
+	model := apContent{Event: rel, Tags: tags}
 	contBuff := bytes.NewBuffer(nil)
 	if err := contHTMLTemplate.Execute(contBuff, model); err != nil {
 		errFn("unable to render post %s", err)
@@ -199,33 +195,29 @@ func renderHTMLObject(d time.Time, rel calendar.Events, tags vocab.ItemCollectio
 	return contBuff.String(), nil
 }
 
-func loadTagsToGroup(group calendar.Events, tags vocab.ItemCollection) (calendar.Events, vocab.ItemCollection) {
+func loadTagsToEvent(rel calendar.Event, tags vocab.ItemCollection) (calendar.Event, vocab.ItemCollection) {
 	remainingTags := make(vocab.ItemCollection, 0)
-	for i, rel := range group {
-		rel.Tags = make(vocab.ItemCollection, 0)
-		for _, t := range tags {
-			for _, tag := range rel.TagNames {
-				tag = "#" + othrys.TagNormalize(tag)
-				tagName := othrys.NameOf(t)
-				if strings.EqualFold(tag, tagName) && !rel.Tags.Contains(t) {
-					rel.Tags = append(rel.Tags, t)
-				}
+
+	rel.Tags = make(vocab.ItemCollection, 0)
+	for _, t := range tags {
+		for _, tag := range rel.TagNames {
+			tag = "#" + othrys.TagNormalize(tag)
+			tagName := othrys.NameOf(t)
+			if strings.EqualFold(tag, tagName) && !rel.Tags.Contains(t) {
+				rel.Tags = append(rel.Tags, t)
 			}
 		}
-		group[i] = rel
 	}
 found:
 	for _, t := range tags {
-		for _, rel := range group {
-			if rel.Tags.Contains(t) {
-				continue found
-			}
+		if rel.Tags.Contains(t) {
+			continue found
 		}
 		if !remainingTags.Contains(t) {
 			remainingTags = append(remainingTags, t)
 		}
 	}
-	return group, remainingTags
+	return rel, remainingTags
 }
 
 func equalOrInCollection(toCheck, with vocab.Item) bool {
@@ -308,44 +300,53 @@ func PostToActivityPub(cl *APClient) PosterFn {
 	return func(groupped map[time.Time]calendar.Events) error {
 		activities := make([]vocab.Activity, 0)
 		for gd, group := range groupped {
-			ob := new(vocab.Event)
-			ob.Type = vocab.EventType
+			for _, rel := range group {
+				var globalTags vocab.ItemCollection
 
-			var globalTags vocab.ItemCollection
-			tags := append(defaultActivityPubTags(gd, actor.ID), apTags(group, actor.ID)...)
-			toCreateTags, err := removeExistingTags(ctx, ap, actor, tags)
-			if err != nil {
-				infFn("Error when loading tags from server: %s", err)
-			}
-			if len(toCreateTags) > 0 {
-				activities = append(activities, othrys.WrapObjectInCreate(*actor, toCreateTags))
-			}
+				ob := new(vocab.Event)
+				ob.Type = vocab.EventType
 
-			group, globalTags = loadTagsToGroup(group, tags)
+				ob.StartTime = rel.StartTime
+				ob.EndTime = rel.StartTime.Add(rel.Duration)
+				ob.Duration = rel.Duration
+				ob.Updated = rel.LastModified
 
-			content, err := renderHTMLObject(gd, group, globalTags)
-			if err != nil {
-				errFn("Unable to render HTML object: %s", err)
-				continue
-			}
-			ob.Content = nl(content)
-			ob.Tag = tags
-
-			title, err := renderTitle(gd, group)
-			if err == nil {
-				ob.Name = nl(title)
-			}
-			if source, err := renderPosts(gd, group); err == nil {
-				ob.Source = vocab.Source{
-					MediaType: "text/markdown",
-					Content:   nl(source),
+				tags := append(defaultActivityPubTags(rel.StartTime, actor.ID), apTags(rel, actor.ID)...)
+				toCreateTags, err := removeExistingTags(ctx, ap, actor, tags)
+				if err != nil {
+					infFn("Error when loading tags from server: %s", err)
 				}
+				if len(toCreateTags) > 0 {
+					activities = append(activities, othrys.WrapObjectInCreate(*actor, toCreateTags))
+				}
+
+				rel, globalTags = loadTagsToEvent(rel, tags)
+
+				content, err := renderHTMLObject(rel, globalTags)
+				if err != nil {
+					errFn("Unable to render HTML object: %s", err)
+					continue
+				}
+
+				ob.Content = othrys.NL(content)
+				ob.Tag = tags
+
+				title, err := renderTitle(rel.StartTime, group)
+				if err == nil {
+					ob.Name = othrys.NL(title)
+				}
+				if source, err := renderPosts(gd, calendar.Events{rel}); err == nil {
+					ob.Source = vocab.Source{
+						MediaType: "text/markdown",
+						Content:   othrys.NL(source),
+					}
+				}
+
+				ob.To = vocab.ItemCollection{vocab.PublicNS}
+				ob.CC = vocab.ItemCollection{vocab.Followers.Of(actor)}
+
+				activities = append(activities, othrys.WrapObjectInCreate(*actor, ob))
 			}
-
-			ob.To = vocab.ItemCollection{vocab.PublicNS}
-			ob.CC = vocab.ItemCollection{vocab.Followers.Of(actor)}
-
-			activities = append(activities, othrys.WrapObjectInCreate(*actor, ob))
 		}
 		(OperationsBatch{AP: ap, Ops: activities}).Send()
 

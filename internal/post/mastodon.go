@@ -3,7 +3,6 @@ package post
 import (
 	"bytes"
 	"fmt"
-	othrys "github.com/mariusor/esports-calendar"
 	"net/url"
 	"path/filepath"
 	"strings"
@@ -13,6 +12,7 @@ import (
 	"github.com/McKael/madon"
 	vocab "github.com/go-ap/activitypub"
 
+	othrys "github.com/mariusor/esports-calendar"
 	"github.com/mariusor/esports-calendar/calendar"
 )
 
@@ -74,9 +74,10 @@ var titleTemplate = template.Must(template.New("daily-PostToMastodon-title").
 	}).Parse(titleTpl))
 
 type postContent struct {
-	tags     []string
-	Date     time.Time
-	Releases calendar.Events
+	tags   []string
+	Date   time.Time
+	Types  []string
+	Events calendar.Events
 }
 
 func stringsContain(sl []string, v string) bool {
@@ -100,7 +101,7 @@ func uniqueValues[T comparable](sl []T, containsFn func(sl []T, u T) bool) []T {
 
 func (c postContent) Tags() []string {
 	tags := make([]string, 0)
-	for _, r := range c.Releases {
+	for _, r := range c.Events {
 		tags = append(tags, r.TagNames...)
 	}
 	for i, t := range tags {
@@ -133,7 +134,7 @@ func renderTitle(gd time.Time, rel calendar.Events) (string, error) {
 }
 
 func renderPosts(d time.Time, rel calendar.Events) (string, error) {
-	model := postContent{Date: d, Releases: rel}
+	model := postContent{Date: d, Events: rel}
 	contBuff := bytes.NewBuffer(nil)
 	if err := contTemplate.Execute(contBuff, model); err != nil {
 		infFn("unable to render post %s", err)
@@ -146,14 +147,14 @@ const unlisted = "unlisted"
 
 type PosterFn func(releases map[time.Time]calendar.Events) error
 
-func PostToMastodon(client *madon.Client, withLinks bool) PosterFn {
+func PostToMastodon(client *madon.Client) PosterFn {
 	if client == nil {
 		return PostToStdout
 	}
 	return func(groupped map[time.Time]calendar.Events) error {
 		var inReplyTo int64 = 0
 		posts := make([]postModel, 0)
-		linkPosts := make(map[int][]postModel)
+
 		for d, releases := range groupped {
 			title := bytes.NewBuffer(nil)
 			if err := titleTemplate.Execute(title, d); err != nil {
@@ -172,20 +173,10 @@ func PostToMastodon(client *madon.Client, withLinks bool) PosterFn {
 			}
 
 			for {
-				var current calendar.Events
 				var content string
-				current, releases = cleaveSlice(releases, cleaveFn(d, &content))
+				_, releases = cleaveSlice(releases, cleaveFn(d, &content))
 
 				posts = append(posts, postModel{title: title.String(), content: content})
-				if withLinks {
-					curIndex := len(posts) - 1
-					for _, rel := range current {
-						if linksContent, err := renderLinks(rel); err == nil {
-							linkPosts[curIndex] = append(linkPosts[curIndex], postModel{title: "", content: linksContent})
-						}
-					}
-				}
-
 				if releases == nil {
 					break
 				}

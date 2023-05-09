@@ -163,7 +163,7 @@ func Post(resolution time.Duration) cli.ActionFunc {
 					if !typeIsAllowed(types, TypeMastodon) || !shouldPostToInstance(instances, cl.InstanceURL) {
 						continue
 					}
-					conf.PostFns = append(conf.PostFns, post.PostToMastodon(cl, c.Bool("with-links")))
+					conf.PostFns = append(conf.PostFns, post.PostToMastodon(cl))
 				case *post.APClient:
 					if !typeIsAllowed(types, TypeFedBOX, TypeONI) ||
 						!shouldPostToInstance(instances, cl.ID.String()) {
