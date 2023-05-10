@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	git.sr.ht/~mariusor/lw v0.0.0-20230317075520-07e173563bf8
-	git.sr.ht/~mariusor/tagextractor v0.0.0-20230312074904-cec8776054de
+	git.sr.ht/~mariusor/tagextractor v0.0.0-20230510075057-ab403485c0b7
 	git.sr.ht/~mariusor/wrapper v0.0.0-20230104101555-9bfc303f6588
 	github.com/McKael/madon v2.3.0+incompatible
 	github.com/PuerkitoBio/goquery v1.8.1

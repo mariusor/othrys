@@ -257,14 +257,10 @@ func UpdateAPAccount(app *post.APClient, a fs.FS, calendars []string, dryRun boo
 		actor.Icon = actor.ID.AddPath("image")
 	}
 
-	actor.Tag = tags
-	if actor.Tag.Count() > 0 {
-		for _, t := range actor.Tag {
-			if !actor.Tag.Contains(t) {
-				actor.Tag = append(actor.Tag, t)
-			}
-			name := othrys.NameOf(t)
-			othrys.SetIDOf(t, actor.ID.AddPath(othrys.TagNormalize(name)))
+	if len(tags) > 0 {
+		for _, t := range tags {
+			othrys.SetIDOf(t, actor.ID.AddPath(othrys.TagNormalize(othrys.NameOf(t))))
+			actor.Tag.Append(t)
 		}
 		operations = append(operations, othrys.WrapObjectInCreate(*actor, actor.Tag))
 	}
