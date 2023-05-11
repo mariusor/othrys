@@ -436,7 +436,16 @@ func (b OperationsBatch) Send() {
 		if err != nil {
 			errFn("%+s", err)
 		} else {
-			infFn("Created object: %s", created.GetLink())
+			if vocab.IsItemCollection(created) {
+				vocab.OnItemCollection(created, func(col *vocab.ItemCollection) error {
+					for _, created := range *col {
+						infFn("Created object: %s", created.GetLink())
+					}
+					return nil
+				})
+			} else {
+				infFn("Created object: %s", created.GetLink())
+			}
 		}
 	}
 }
