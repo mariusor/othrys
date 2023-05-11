@@ -36,9 +36,9 @@ var PostCmd = cli.Command{
 			Usage: "Date at which to start",
 			Value: defaultStartTime.Format("2006-01-02"),
 		},
-		&cli.StringFlag{
+		&cli.StringSliceFlag{
 			Name:  "instance",
-			Usage: "The instance to authenticate against",
+			Usage: "The instances to post to",
 		},
 		&cli.StringFlag{
 			Name:  "type",
