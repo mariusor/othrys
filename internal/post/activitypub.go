@@ -323,6 +323,16 @@ func ToActivityPub(cl *APClient) PosterFn {
 				ob.EndTime = event.StartTime.Add(event.Duration)
 				ob.Duration = event.Duration
 				ob.Updated = event.LastModified
+				if len(event.Links) > 0 {
+					urls := make(vocab.ItemCollection, len(event.Links))
+					for i, link := range event.Links {
+						urls[i] = vocab.IRI(link)
+					}
+					ob.URL = urls
+					if urls.Count() == 1 {
+						ob.URL = urls.First()
+					}
+				}
 
 				tags := append(defaultActivityPubTags(event.StartTime, actor.ID), apTags(event, actor.ID)...)
 				toCreateTags, err := removeExistingTags(ctx, ap, actor, tags)
