@@ -33,16 +33,16 @@ var ValidTypes = [...]string{
 }
 
 var baseURIs = map[string]string{
-	LabelTeamLiquid:   "http://www.teamliquid.net",
-	LabelSCRemastered: "http://www.teamliquid.net",
-	LabelSC2:          "http://www.teamliquid.net",
-	LabelBW:           "http://www.teamliquid.net",
-	LabelCSGO:         "http://www.teamliquid.net",
-	LabelHOTS:         "http://www.teamliquid.net",
-	LabelSmash:        "http://www.teamliquid.net",
-	LabelDota:         "http://www.teamliquid.com",
-	//LabelLOL:          "http://www.liquidlegends.net",
-	LabelOverwatch: "http://www.teamliquid.net",
+	LabelTeamLiquid:   "https://tl.net",
+	LabelSCRemastered: "https://tl.net",
+	LabelSC2:          "https://tl.net",
+	LabelBW:           "https://tl.net",
+	LabelCSGO:         "https://tl.net",
+	LabelHOTS:         "https://tl.net",
+	LabelSmash:        "https://tl.net",
+	LabelDota:         "https://tl.net",
+	LabelLOL:          "https://tl.net",
+	LabelOverwatch:    "https://tl.net",
 }
 
 var calendarPath = map[string]string{
