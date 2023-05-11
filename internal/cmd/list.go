@@ -33,7 +33,7 @@ var ListCmd = cli.Command{
 		&cli.DurationFlag{
 			Name:  "end",
 			Usage: "Date interval to check",
-			Value: ResolutionYearish,
+			Value: ResolutionDay,
 		},
 	},
 	Action: listCalendars,

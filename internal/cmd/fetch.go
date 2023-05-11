@@ -93,7 +93,7 @@ var FetchCmd = cli.Command{
 		&cli.DurationFlag{
 			Name:  "end",
 			Usage: "Date interval to check",
-			Value: ResolutionYearish,
+			Value: ResolutionMonthish,
 		},
 	},
 	Action: fetchCalendars,
