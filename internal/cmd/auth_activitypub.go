@@ -254,7 +254,7 @@ func UpdateAPAccount(app *post.APClient, a fs.FS, calendars []string, dryRun boo
 	}
 	if len(hdr) > 0 {
 		operations = append(operations, saveImage(actor.ID.AddPath("image"), hdr))
-		actor.Icon = actor.ID.AddPath("image")
+		actor.Image = actor.ID.AddPath("image")
 	}
 
 	if len(tags) > 0 {
