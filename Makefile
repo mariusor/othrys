@@ -14,11 +14,11 @@ M4 = /usr/bin/m4
 
 DESTDIR = /
 INSTALL_PREFIX = usr/local/
-USERUNITDIR = lib/systemd/system
+USERUNITDIR = lib/systemd/user
 LIBDIR = var/lib
 
 BIN_DIR ?= $(DESTDIR)$(INSTALL_PREFIX)bin
-DATA_DIR ?= $(DESTDIR)$(LIBDIR)/$(PROJECT_NAME)
+DATA_DIR ?= %h/.local/share/$(PROJECT_NAME)
 
 BIN_CTL = $(PROJECT_NAME)ctl
 BIN_ICAL = $(PROJECT_NAME)ical
@@ -70,7 +70,7 @@ units/%.service: units/%.service.in
 mod_tidy:
 	$(GO) mod tidy
 
-install: units $(BIN_CTL) $(BIN_ICAL))
+install: units $(BIN_CTL) $(BIN_ICAL)
 	test -d $(DESTDIR)$(INSTALL_PREFIX)$(USERUNITDIR)/ || mkdir -p $(DESTDIR)$(INSTALL_PREFIX)$(USERUNITDIR)/
 	test -d $(DATA_DIR)/ || mkdir -p $(DATA_DIR)/
 
