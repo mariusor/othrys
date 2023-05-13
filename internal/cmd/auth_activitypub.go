@@ -224,6 +224,9 @@ func UpdateAPAccount(app *post.APClient, a fs.FS, calendars []string, dryRun boo
 	if len(summary) > 0 {
 		actor.Summary = othrys.NL(summary)
 	}
+	actor.Inbox = vocab.Inbox.Of(actor.ID)
+	actor.Outbox = vocab.Outbox.Of(actor.ID)
+	actor.Followers = vocab.Followers.Of(actor.ID)
 
 	saveImage := func(iri vocab.IRI, data string) vocab.Activity {
 		saveImage := vocab.Activity{
