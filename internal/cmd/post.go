@@ -227,7 +227,8 @@ func LoadAndPost(c PostConfig, types ...string) error {
 
 	toPostReleases := make(map[time.Time]calendar.Events)
 	for _, r := range releases {
-		toPostReleases[r.StartTime] = append(toPostReleases[r.StartTime], r)
+		day := r.StartTime.Truncate(ResolutionDay)
+		toPostReleases[day] = append(toPostReleases[day], r)
 	}
 
 	for _, postFn := range c.PostFns {
@@ -281,3 +282,38 @@ const (
 	ResolutionMonthish = 31 * ResolutionDay
 	ResolutionYearish  = 365 * ResolutionDay
 )
+
+func PostEverything(dataPath string, resolution time.Duration) error {
+	creds, err := post.LoadCredentials(dataPath)
+	if err != nil {
+		return fmt.Errorf("no credentials found: %w", err)
+	}
+	conf := PostConfig{
+		Date:       time.Now().UTC(),
+		Resolution: resolution,
+		Path:       dataPath,
+	}
+	for _, cred := range creds {
+		switch cl := cred.(type) {
+		case *madon.Client:
+			conf.PostFns = append(conf.PostFns, post.ToMastodon(cl))
+		case *post.APClient:
+			ctx := context.WithValue(context.Background(), oauth2.HTTPClient, post.GetHTTPClient())
+			if !cl.Tok.Expiry.IsZero() && cl.Tok.Expiry.Sub(time.Now()) <= 0 {
+				clc := cl.Conf
+				cl.Tok, err = clc.PasswordCredentialsToken(ctx, cl.ID.String(), clc.ClientSecret)
+				if err != nil {
+					errFn("Unable to get new token for %s: %s", cl.ID, err)
+					continue
+				}
+			}
+			conf.PostFns = append(conf.PostFns, post.ToActivityPub(cl))
+		}
+	}
+
+	if err = LoadAndPost(conf, calendar.GetTypes(nil)...); err != nil {
+		return fmt.Errorf("unable to post: %w", err)
+	}
+
+	return nil
+}
