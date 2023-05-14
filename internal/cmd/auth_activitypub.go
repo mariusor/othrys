@@ -239,6 +239,7 @@ func UpdateAPAccount(app *post.APClient, a fs.FS, calendars []string, dryRun boo
 			saveImage.Type = vocab.CreateType
 		}
 		image.ID = iri
+		image.URL = iri
 		image.AttributedTo = actor.GetLink()
 		image.Type = vocab.ImageType
 		image.MediaType = "image/png"
@@ -249,12 +250,14 @@ func UpdateAPAccount(app *post.APClient, a fs.FS, calendars []string, dryRun boo
 
 	operations := make([]vocab.Activity, 0)
 	if len(avatar) > 0 {
-		operations = append(operations, saveImage(actor.ID.AddPath("icon"), avatar))
-		actor.Icon = actor.ID.AddPath("icon")
+		saveIcon := saveImage(actor.ID.AddPath("icon"), avatar)
+		operations = append(operations, saveIcon)
+		actor.Icon = saveIcon.Object
 	}
 	if len(hdr) > 0 {
-		operations = append(operations, saveImage(actor.ID.AddPath("image"), hdr))
-		actor.Image = actor.ID.AddPath("image")
+		saveHeader := saveImage(actor.ID.AddPath("image"), hdr)
+		operations = append(operations, saveHeader)
+		actor.Image = saveHeader.Object
 	}
 
 	if len(tags) > 0 {
