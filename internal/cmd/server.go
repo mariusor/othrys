@@ -73,6 +73,14 @@ func serverStart(c *cli.Context) error {
 			exit <- 0
 		},
 	}).Exec(func() error {
+		go func() {
+			for {
+				time.Sleep(time.Minute)
+				if err := PostEverything(DataPath(), time.Hour); err != nil {
+					errFn("Unable to post: %s", err)
+				}
+			}
+		}()
 		if err := srvRun(); err != nil {
 			errFn("Error: %s", err)
 			return err
