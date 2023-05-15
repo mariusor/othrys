@@ -148,7 +148,7 @@ func CheckFedBOXCredentialsFile(instance, key, secret, token string, dryRun bool
 }
 
 func UpdateAPAccount(app *post.APClient, a fs.FS, calendars []string, dryRun bool) error {
-	var name, desc, summary, avatar, hdr string
+	var name, fullName, desc, summary, avatar, hdr string
 
 	logger := lw.Dev()
 
@@ -194,6 +194,11 @@ func UpdateAPAccount(app *post.APClient, a fs.FS, calendars []string, dryRun boo
 		}
 	}
 
+	if len(calendars) == 1 {
+		c := calendars[0]
+		fullName = fmt.Sprintf("%s Calendar", othrys.TagNormalize(calendar.Labels[c]))
+	}
+
 	if data, _ := loadStaticFile(a, "avatar.png"); data != nil {
 		avatar = fmt.Sprintf("data:image/png;base64,%s", base64.RawStdEncoding.EncodeToString(data))
 	}
@@ -215,8 +220,12 @@ func UpdateAPAccount(app *post.APClient, a fs.FS, calendars []string, dryRun boo
 	if err != nil {
 		return err
 	}
+
 	if len(name) > 0 {
 		actor.PreferredUsername = othrys.NL(name)
+	}
+	if len(fullName) > 0 {
+		actor.Name = othrys.NL(fullName)
 	}
 	if len(desc) > 0 {
 		actor.Content = othrys.NL(desc)
