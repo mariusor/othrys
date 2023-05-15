@@ -75,8 +75,8 @@ func serverStart(c *cli.Context) error {
 	}).Exec(func() error {
 		go func() {
 			for {
-				time.Sleep(time.Minute)
-				if err := PostEverything(DataPath(), time.Hour); err != nil {
+				time.Sleep(5 * time.Minute)
+				if err := PostEverything(DataPath(), 5*time.Minute); err != nil {
 					errFn("Unable to post: %s", err)
 				}
 			}
