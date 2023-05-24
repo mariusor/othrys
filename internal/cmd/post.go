@@ -1,16 +1,11 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
-	"net/url"
 	"path"
-	"strings"
 	"time"
 
-	"github.com/McKael/madon"
 	"github.com/urfave/cli"
-	"golang.org/x/oauth2"
 
 	"git.sr.ht/~mariusor/othrys/calendar"
 	"git.sr.ht/~mariusor/othrys/internal/post"
@@ -69,41 +64,6 @@ func parseStartDate(s string) time.Time {
 	return d.Truncate(24 * time.Hour)
 }
 
-func shouldPostToInstance(instances []string, inst string) bool {
-	if len(instances) == 0 {
-		return true
-	}
-	name := urlHost(inst)
-	for _, instance := range instances {
-		if strings.EqualFold(urlHost(instance), name) {
-			return true
-		}
-	}
-	return false
-}
-
-func urlHost(u string) string {
-	uu, err := url.ParseRequestURI(u)
-	if err != nil {
-		return ""
-	}
-	return uu.Host
-}
-
-func typeIsAllowed(checkTypes []string, validTypes ...string) bool {
-	if len(checkTypes) == 0 {
-		return true
-	}
-	for _, sv := range checkTypes {
-		for _, typ := range validTypes {
-			if strings.EqualFold(sv, typ) {
-				return true
-			}
-		}
-	}
-	return false
-}
-
 func stringValue(c *cli.Context, p string) string {
 	for {
 		if c.IsSet(p) {
@@ -150,40 +110,14 @@ func Post(resolution time.Duration) cli.ActionFunc {
 		calendars := stringSliceValues(c, "calendar")
 		calendars = calendar.GetTypes(calendars)
 
-		types := stringSliceValues(c, "type")
-		instances := stringSliceValues(c, "instance")
-
 		if !conf.DryRun {
 			creds, err := post.LoadCredentials(DataPath())
 			if err != nil {
 				return fmt.Errorf("unable to load credentials for the client: %w", err)
 			}
 			for _, cred := range creds {
-				switch cl := cred.(type) {
-				case *madon.Client:
-					if !typeIsAllowed(types, TypeMastodon) || !shouldPostToInstance(instances, cl.InstanceURL) {
-						continue
-					}
-					conf.PostFns = append(conf.PostFns, post.ToMastodon(cl))
-				case *post.APClient:
-					if !typeIsAllowed(types, TypeFedBOX, TypeONI) ||
-						!shouldPostToInstance(instances, cl.ID.String()) {
-						continue
-					}
-					if cl.Type != "" && !typeIsAllowed(types, cl.Type) {
-						continue
-					}
-					var err error
-
-					ctx := context.WithValue(context.Background(), oauth2.HTTPClient, post.GetHTTPClient())
-					if !cl.Tok.Expiry.IsZero() && cl.Tok.Expiry.Sub(time.Now()) <= 0 {
-						clc := cl.Conf
-						cl.Tok, err = clc.PasswordCredentialsToken(ctx, cl.ID.String(), clc.ClientSecret)
-						if err != nil {
-							return fmt.Errorf("unable to get new token for %s: %w", cl.ID, err)
-						}
-					}
-					conf.PostFns = append(conf.PostFns, post.ToActivityPub(cl))
+				if cred.Valid(c) {
+					conf.PostFns = append(conf.PostFns, cred.Post())
 				}
 			}
 		}
@@ -294,21 +228,7 @@ func PostEverything(dataPath string, resolution time.Duration) error {
 		Path:       dataPath,
 	}
 	for _, cred := range creds {
-		switch cl := cred.(type) {
-		case *madon.Client:
-			conf.PostFns = append(conf.PostFns, post.ToMastodon(cl))
-		case *post.APClient:
-			ctx := context.WithValue(context.Background(), oauth2.HTTPClient, post.GetHTTPClient())
-			if !cl.Tok.Expiry.IsZero() && cl.Tok.Expiry.Sub(time.Now()) <= 0 {
-				clc := cl.Conf
-				cl.Tok, err = clc.PasswordCredentialsToken(ctx, cl.ID.String(), clc.ClientSecret)
-				if err != nil {
-					errFn("Unable to get new token for %s: %s", cl.ID, err)
-					continue
-				}
-			}
-			conf.PostFns = append(conf.PostFns, post.ToActivityPub(cl))
-		}
+		conf.PostFns = append(conf.PostFns, cred.Post())
 	}
 
 	if err = LoadAndPost(conf, calendar.GetTypes(nil)...); err != nil {

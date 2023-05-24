@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"encoding/gob"
 	"fmt"
-	"github.com/McKael/madon"
 	"io"
 	"io/fs"
 	"net/url"
@@ -13,12 +12,16 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/McKael/madon"
+
+	"git.sr.ht/~mariusor/othrys/internal/post"
 )
 
 const ExecOpenCmd = "xdg-open"
 
-func CheckMastodonCredentialsFile(path, key, secret, token, instance string, dryRun bool, getAccessTokenFn func() (string, error)) (*madon.Client, error) {
-	app := new(madon.Client)
+func CheckMastodonCredentialsFile(path, key, secret, token, instance string, calendars []string, dryRun bool, getAccessTokenFn func() (string, error)) (*post.MastodonClient, error) {
+	app := new(post.MastodonClient)
 	path = filepath.Join(path, instance)
 	if err := loadMastodonCredentials(app, path); err != nil {
 		if len(key) > 0 && len(secret) > 0 {
@@ -36,7 +39,7 @@ func CheckMastodonCredentialsFile(path, key, secret, token, instance string, dry
 				app.UserToken.AccessToken = token
 			}
 		} else {
-			if app, err = madon.NewApp(AppName, AppWebsite, AppScopes, "", instance); err != nil {
+			if app.Client, err = madon.NewApp(AppName, AppWebsite, AppScopes, "", instance); err != nil {
 				return nil, fmt.Errorf("unable to initialize mastodon application: %w", err)
 			}
 		}
@@ -69,6 +72,7 @@ func CheckMastodonCredentialsFile(path, key, secret, token, instance string, dry
 			return nil, fmt.Errorf("unable to get user authorization")
 		}
 
+		app.Types = calendars
 		if err := saveMastodonCredentials(app, app.InstanceURL); err != nil {
 			//infFn("unable to save credentials: %s", err)
 		}
@@ -83,15 +87,15 @@ func InstanceName(inst string) string {
 	}
 	return url.PathEscape(filepath.Clean(filepath.Base(inst)))
 }
-func ValidMastodonAuth(c *madon.Client) bool {
+func ValidMastodonAuth(c *post.MastodonClient) bool {
 	return ValidMastodonApp(c) && c.UserToken != nil && c.UserToken.AccessToken != ""
 }
 
-func ValidMastodonApp(c *madon.Client) bool {
+func ValidMastodonApp(c *post.MastodonClient) bool {
 	return c != nil && c.Name != "" && c.ID != "" && c.Secret != "" && c.APIBase != "" && c.InstanceURL != ""
 }
 
-func loadMastodonCredentials(c *madon.Client, path string) error {
+func loadMastodonCredentials(c *post.MastodonClient, path string) error {
 	f, err := os.OpenFile(path, os.O_RDONLY, 0600)
 	if err != nil {
 		return fmt.Errorf("unable to load credentials file %s: %w", path, err)
@@ -101,7 +105,7 @@ func loadMastodonCredentials(c *madon.Client, path string) error {
 	return d.Decode(c)
 }
 
-func saveMastodonCredentials(c *madon.Client, path string) error {
+func saveMastodonCredentials(c *post.MastodonClient, path string) error {
 	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return fmt.Errorf("unable to open file %w", err)
@@ -121,7 +125,7 @@ func loadStaticFile(s fs.FS, f string) ([]byte, error) {
 	return io.ReadAll(desc)
 }
 
-func UpdateMastodonAccount(app *madon.Client, a fs.FS, dryRun bool) error {
+func UpdateMastodonAccount(app *post.MastodonClient, a fs.FS, dryRun bool) error {
 	var namePtr, descPtr, avatarPtr, hdrPtr *string
 	if data, _ := loadStaticFile(a, "static/name.txt"); data != nil {
 		name := strings.TrimSpace(string(data))

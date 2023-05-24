@@ -80,7 +80,7 @@ func Authorize(c *cli.Context) error {
 	switch typ {
 	case TypeMastodon:
 		getTok := getAccessToken("Paste authorization code: ")
-		client, err := CheckMastodonCredentialsFile(DataPath(), key, secret, accessToken, instance, dryRun, getTok)
+		client, err := CheckMastodonCredentialsFile(DataPath(), key, secret, accessToken, instance, calendars, dryRun, getTok)
 		if err != nil {
 			return err
 		}
@@ -90,7 +90,7 @@ func Authorize(c *cli.Context) error {
 		info("Success, authorized client for: %s", client.InstanceURL)
 	case TypeONI:
 		cl := post.GetHTTPClient()
-		client, err := CheckONICredentialsFile(instance, cl, secret, accessToken, dryRun)
+		client, err := CheckONICredentialsFile(instance, cl, secret, accessToken, calendars, dryRun)
 		if err != nil {
 			return err
 		}
@@ -99,7 +99,7 @@ func Authorize(c *cli.Context) error {
 		}
 		info("Success, authorized client for: %s", client.Conf.ClientID)
 	case TypeFedBOX:
-		client, err := CheckFedBOXCredentialsFile(instance, key, secret, accessToken, dryRun)
+		client, err := CheckFedBOXCredentialsFile(instance, key, secret, accessToken, calendars, dryRun)
 		if err != nil {
 			return err
 		}

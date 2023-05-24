@@ -9,9 +9,11 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/McKael/madon"
+	"github.com/urfave/cli"
+
 	"git.sr.ht/~mariusor/othrys"
 	"git.sr.ht/~mariusor/othrys/calendar"
-	"github.com/McKael/madon"
 )
 
 const maxPostSize = 500
@@ -124,6 +126,78 @@ func renderPosts(d time.Time, rel calendar.Events) (string, error) {
 const unlisted = "unlisted"
 
 type PosterFn func(events map[time.Time]calendar.Events) error
+
+type MastodonClient struct {
+	*madon.Client
+	Types []string
+}
+
+func typeIsAllowed(checkTypes []string, validTypes ...string) bool {
+	if len(checkTypes) == 0 {
+		return true
+	}
+	for _, sv := range checkTypes {
+		for _, typ := range validTypes {
+			if strings.EqualFold(sv, typ) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func shouldPostToInstance(instances []string, inst string) bool {
+	if len(instances) == 0 {
+		return true
+	}
+	name := urlHost(inst)
+	for _, instance := range instances {
+		if strings.EqualFold(urlHost(instance), name) {
+			return true
+		}
+	}
+	return false
+}
+
+func urlHost(u string) string {
+	uu, err := url.ParseRequestURI(u)
+	if err != nil {
+		return ""
+	}
+	return uu.Host
+}
+func stringSliceValues(c *cli.Context, p string) []string {
+	for {
+		if c.IsSet(p) {
+			if values := c.StringSlice(p); values != nil {
+				return values
+			}
+		}
+		if c = c.Parent(); c == nil {
+			break
+		}
+	}
+	return nil
+}
+
+const (
+	typeMastodon = "mastodon"
+	typeONI      = "oni"
+	typeFedBOX   = "fedbox"
+)
+
+func (m *MastodonClient) Valid(c *cli.Context) bool {
+	calendars := stringSliceValues(c, "calendar")
+	calendars = calendar.GetTypes(calendars)
+
+	types := stringSliceValues(c, "type")
+	instances := stringSliceValues(c, "instance")
+	return !typeIsAllowed(types, typeMastodon) || !shouldPostToInstance(instances, m.InstanceURL)
+}
+
+func (m *MastodonClient) Post() PosterFn {
+	return ToMastodon(m.Client)
+}
 
 func ToMastodon(client *madon.Client) PosterFn {
 	if client == nil {

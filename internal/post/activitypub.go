@@ -18,15 +18,16 @@ import (
 	"time"
 
 	"git.sr.ht/~mariusor/lw"
-	"github.com/McKael/madon"
 	vocab "github.com/go-ap/activitypub"
 	"github.com/go-ap/client"
 	"github.com/mariusor/render"
+	"github.com/urfave/cli"
 	"golang.org/x/oauth2"
 	"golang.org/x/sync/errgroup"
 
 	"git.sr.ht/~mariusor/othrys"
 	"git.sr.ht/~mariusor/othrys/calendar"
+	"git.sr.ht/~mariusor/othrys/storage/boltdb"
 )
 
 const eventTitleTpl = `{{ if gt (len .Event.Category) 0}}{{.Event.Category}}: {{ end }}{{ .Event.Stage }}`
@@ -281,6 +282,37 @@ func removeExistingTags(ctx context.Context, client client.PubGetter, actor *voc
 	return tagsToCreate, nil
 }
 
+func (cl *APClient) Valid(c *cli.Context) bool {
+	calendars := stringSliceValues(c, "calendar")
+	calendars = calendar.GetTypes(calendars)
+
+	types := stringSliceValues(c, "type")
+	instances := stringSliceValues(c, "instance")
+
+	if !typeIsAllowed(types, typeFedBOX, typeONI) || !shouldPostToInstance(instances, cl.ID.String()) {
+		return false
+	}
+	if cl.Type != "" && !typeIsAllowed(types, cl.Type) {
+		return false
+	}
+	var err error
+
+	ctx := context.WithValue(context.Background(), oauth2.HTTPClient, GetHTTPClient())
+	if !cl.Tok.Expiry.IsZero() && cl.Tok.Expiry.Sub(time.Now()) <= 0 {
+		clc := cl.Conf
+		cl.Tok, err = clc.PasswordCredentialsToken(ctx, cl.ID.String(), clc.ClientSecret)
+		if err != nil {
+			errFn("unable to get new token for %s: %w", cl.ID, err)
+			return false
+		}
+	}
+	return true
+}
+
+func (cl *APClient) Post() PosterFn {
+	return ToActivityPub(cl)
+}
+
 func ToActivityPub(cl *APClient) PosterFn {
 	logger := lw.Dev()
 
@@ -471,14 +503,14 @@ func saveCredentials(cl any, path string) error {
 	return d.Encode(cl)
 }
 
-func LoadCredentials(path string) (map[string]any, error) {
-	creds := make(map[string]any)
+func LoadCredentials(path string) (map[string]LoginCredentials, error) {
+	creds := make(map[string]LoginCredentials)
 
 	err := filepath.WalkDir(path, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		if d.IsDir() {
+		if d.IsDir() || d.Name() == boltdb.DefaultFile {
 			return nil
 		}
 
@@ -486,7 +518,7 @@ func LoadCredentials(path string) (map[string]any, error) {
 		if err != nil {
 			return err
 		}
-		for _, cl := range []any{new(APClient), new(madon.Client)} {
+		for _, cl := range []LoginCredentials{new(APClient), new(MastodonClient)} {
 			if err := gob.NewDecoder(bytes.NewReader(raw)).Decode(cl); err != nil {
 				continue
 			}

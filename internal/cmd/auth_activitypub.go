@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"git.sr.ht/~mariusor/lw"
-	"git.sr.ht/~mariusor/othrys/calendar"
 	"git.sr.ht/~mariusor/tagextractor"
 	vocab "github.com/go-ap/activitypub"
 	"github.com/go-ap/client"
@@ -23,10 +22,11 @@ import (
 	"golang.org/x/oauth2"
 
 	"git.sr.ht/~mariusor/othrys"
+	"git.sr.ht/~mariusor/othrys/calendar"
 	"git.sr.ht/~mariusor/othrys/internal/post"
 )
 
-func CheckONICredentialsFile(instance string, cl *http.Client, secret, token string, dryRun bool) (*post.APClient, error) {
+func CheckONICredentialsFile(instance string, cl *http.Client, secret, token string, calendars []string, dryRun bool) (*post.APClient, error) {
 	actorIRI := vocab.IRI(instance)
 	u, _ := actorIRI.URL()
 	key := u.Host
@@ -85,10 +85,11 @@ func CheckONICredentialsFile(instance string, cl *http.Client, secret, token str
 		return nil, errors.Newf("Failed to load a valid OAuth2 token for client")
 	}
 
+	app.Types = calendars
 	return app, saveCredentials(app, filepath.Join(DataPath(), InstanceName(instance)))
 }
 
-func CheckFedBOXCredentialsFile(instance, key, secret, token string, dryRun bool) (*post.APClient, error) {
+func CheckFedBOXCredentialsFile(instance, key, secret, token string, calendars []string, dryRun bool) (*post.APClient, error) {
 	client.UserAgent = filepath.Join(AppName, AppVersion, key)
 
 	logger := lw.Dev()
@@ -144,6 +145,7 @@ func CheckFedBOXCredentialsFile(instance, key, secret, token string, dryRun bool
 		return nil, errors.Newf("Failed to load a valid OAuth2 token for client")
 	}
 
+	app.Types = calendars
 	return app, saveCredentials(app, filepath.Join(DataPath(), InstanceName(instance)))
 }
 
@@ -295,7 +297,7 @@ func UpdateAPAccount(app *post.APClient, a fs.FS, calendars []string, dryRun boo
 	return nil
 }
 
-func saveCredentials(cl any, path string) error {
+func saveCredentials(cl post.LoginCredentials, path string) error {
 	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return fmt.Errorf("unable to open file %w", err)
