@@ -196,10 +196,10 @@ func (m *MastodonClient) Valid(c *cli.Context) bool {
 }
 
 func (m *MastodonClient) Post() PosterFn {
-	return ToMastodon(m.Client)
+	return ToMastodon(m)
 }
 
-func ToMastodon(client *madon.Client) PosterFn {
+func ToMastodon(client *MastodonClient) PosterFn {
 	if client == nil {
 		return ToStdout
 	}
@@ -208,6 +208,12 @@ func ToMastodon(client *madon.Client) PosterFn {
 		posts := make([]postModel, 0)
 
 		for d, events := range group {
+			for i, event := range events {
+				if !stringsContain(client.Types, event.Type) {
+					events = append(events[:i], events[i+1:]...)
+				}
+			}
+
 			title, err := renderTitle(d, events)
 			if err != nil {
 				errFn("Unable to render title: %s", err)

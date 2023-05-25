@@ -346,6 +346,9 @@ func ToActivityPub(cl *APClient) PosterFn {
 		for gd, events := range group {
 			object := make(vocab.ItemCollection, 0)
 			for _, event := range events {
+				if !stringsContain(cl.Types, event.Type) {
+					continue
+				}
 				var globalTags vocab.ItemCollection
 
 				ob := new(vocab.Event)
