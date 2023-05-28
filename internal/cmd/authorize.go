@@ -63,7 +63,6 @@ func Authorize(c *cli.Context) error {
 	update := c.Bool("update-account")
 
 	calendars := stringSliceValues(c, "calendar")
-	calendars = calendar.GetTypes(calendars)
 
 	s, err := fs.Sub(othrys.AccountDetails, "static")
 	if err != nil {
@@ -76,6 +75,7 @@ func Authorize(c *cli.Context) error {
 			}
 		}
 	}
+	calendars = calendar.GetTypes(calendars)
 
 	switch typ {
 	case TypeMastodon:
