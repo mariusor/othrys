@@ -407,9 +407,13 @@ func ToActivityPub(cl *APClient) PosterFn {
 
 				object = append(object, ob)
 			}
-			activities = append(activities, othrys.WrapObjectInCreate(*actor, object))
+			if len(object) > 0 {
+				activities = append(activities, othrys.WrapObjectInCreate(*actor, object))
+			}
 		}
-		(OperationsBatch{AP: ap, Ops: activities}).Send()
+		if len(activities) > 0 {
+			(OperationsBatch{AP: ap, Ops: activities}).Send()
+		}
 
 		if tr, ok := oauth.Transport.(*oauth2.Transport); ok {
 			cl.Tok, err = tr.Source.Token()
