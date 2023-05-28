@@ -2,8 +2,6 @@ package othrys
 
 import (
 	vocab "github.com/go-ap/activitypub"
-	"regexp"
-	"strings"
 	"time"
 )
 
@@ -38,29 +36,6 @@ func NameOf(it vocab.Item) string {
 }
 
 var NL = vocab.DefaultNaturalLanguageValue
-
-func TagNormalize(t string) string {
-	hasHash := len(t) > 2 && t[0] == '#'
-	if hasHash {
-		t = t[1:]
-	}
-	t = strings.ToLower(t)
-	t = removeStrings(t, toRemoveStrings...)
-	t = repl.ReplaceAllLiteralString(t, "")
-	return t
-}
-
-var (
-	repl            = regexp.MustCompile("metal$")
-	toRemoveStrings = []string{"(early)", "(later)", "(mid)", "-", " ", "#", "'"}
-)
-
-func removeStrings(s string, replace ...string) string {
-	for _, r := range replace {
-		s = strings.ReplaceAll(s, r, "")
-	}
-	return s
-}
 
 func WrapObjectInCreate(actor vocab.Actor, p vocab.Item) vocab.Activity {
 	now := time.Now().UTC()

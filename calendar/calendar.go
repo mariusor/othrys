@@ -180,14 +180,13 @@ var Colors = map[string]string{
 }
 
 var Labels = map[string]string{
-	liquid.LabelTeamLiquid:   "TeamLiquid",
-	liquid.LabelSC2:          "StarCraft 2",
-	liquid.LabelSCRemastered: "StarCraft Remastered",
-	liquid.LabelBW:           "BroodWar",
-	liquid.LabelCSGO:         "Counterstrike: Go",
-	liquid.LabelHOTS:         "Heroes of the Storm",
-	liquid.LabelSmash:        "Smash",
-	//liquid.LabelHearthstone:         "Hearthstone",
+	liquid.LabelTeamLiquid:          "TeamLiquid",
+	liquid.LabelSC2:                 "StarCraft 2",
+	liquid.LabelSCRemastered:        "StarCraft Remastered",
+	liquid.LabelBW:                  "BroodWar",
+	liquid.LabelCSGO:                "Counterstrike: Go",
+	liquid.LabelHOTS:                "Heroes of the Storm",
+	liquid.LabelSmash:               "Smash",
 	liquid.LabelDota:                "DotA",
 	liquid.LabelLOL:                 "League of Legends",
 	liquid.LabelOverwatch:           "Overwatch",

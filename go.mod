@@ -4,14 +4,14 @@ go 1.19
 
 require (
 	git.sr.ht/~mariusor/lw v0.0.0-20230317075520-07e173563bf8
-	git.sr.ht/~mariusor/tagextractor v0.0.0-20230510075057-ab403485c0b7
+	git.sr.ht/~mariusor/tagextractor v0.0.0-20230528125432-ead9ee17a125
 	git.sr.ht/~mariusor/wrapper v0.0.0-20230104101555-9bfc303f6588
 	github.com/McKael/madon v2.3.0+incompatible
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/charmbracelet/bubbles v0.15.0
 	github.com/charmbracelet/bubbletea v0.23.2
-	github.com/go-ap/activitypub v0.0.0-20230509081506-c63baa5ec992
-	github.com/go-ap/client v0.0.0-20230509081643-66f4b336aaef
+	github.com/go-ap/activitypub v0.0.0-20230514141345-45936cc2f768
+	github.com/go-ap/client v0.0.0-20230514142616-d54d23930714
 	github.com/go-ap/errors v0.0.0-20221205040414-01c1adfc98ea
 	github.com/mariusor/render v1.5.1-0.20221026090743-ab78c1b3aa95
 	github.com/soh335/ical v0.0.0-20160115065015-8bf3eeeb3583
@@ -35,7 +35,7 @@ require (
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.18 // indirect
+	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/muesli/ansi v0.0.0-20211018074035-2e021307bc4b // indirect

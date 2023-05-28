@@ -182,7 +182,7 @@ func UpdateAPAccount(app *post.APClient, a fs.FS, calendars []string, dryRun boo
 	if len(calendars) > 0 {
 		calendarTags := make([]string, len(calendars))
 		for i, c := range calendars {
-			calendarTags[i] = "#" + othrys.TagNormalize(calendar.Labels[c])
+			calendarTags[i] = "#" + tagextractor.TagNormalize(calendar.Labels[c])
 		}
 
 		data, esportTags := tagextractor.FindAndReplace(bytes.TrimSpace([]byte(fmt.Sprintf("eSports calendar bot posting events for %s", strings.Join(calendarTags, ", ")))))
@@ -198,7 +198,7 @@ func UpdateAPAccount(app *post.APClient, a fs.FS, calendars []string, dryRun boo
 
 	if len(calendars) == 1 {
 		c := calendars[0]
-		fullName = fmt.Sprintf("%s Calendar", othrys.TagNormalize(calendar.Labels[c]))
+		fullName = fmt.Sprintf("%s Calendar", tagextractor.TagNormalize(calendar.Labels[c]))
 	}
 
 	if data, _ := loadStaticFile(a, "avatar.png"); data != nil {
@@ -275,8 +275,9 @@ func UpdateAPAccount(app *post.APClient, a fs.FS, calendars []string, dryRun boo
 	}
 
 	if len(tags) > 0 {
+		actor.Tag = actor.Tag[:0]
 		for _, t := range tags {
-			othrys.SetIDOf(t, actor.ID.AddPath(othrys.TagNormalize(othrys.NameOf(t))))
+			othrys.SetIDOf(t, actor.ID.AddPath(tagextractor.TagNormalize(othrys.NameOf(t))))
 			actor.Tag.Append(t)
 		}
 		operations = append(operations, othrys.WrapObjectInCreate(*actor, actor.Tag))

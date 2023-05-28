@@ -9,10 +9,10 @@ import (
 	"text/template"
 	"time"
 
+	"git.sr.ht/~mariusor/tagextractor"
 	"github.com/McKael/madon"
 	"github.com/urfave/cli"
 
-	"git.sr.ht/~mariusor/othrys"
 	"git.sr.ht/~mariusor/othrys/calendar"
 )
 
@@ -96,7 +96,7 @@ func (c postContent) Tags() []string {
 		tags = append(tags, r.TagNames...)
 	}
 	for i, t := range tags {
-		tags[i] = othrys.TagNormalize(t)
+		tags[i] = tagextractor.TagNormalize(t)
 	}
 	return uniqueValues(tags, stringsContain)
 }

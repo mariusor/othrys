@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"git.sr.ht/~mariusor/lw"
+	"git.sr.ht/~mariusor/tagextractor"
 	vocab "github.com/go-ap/activitypub"
 	"github.com/go-ap/client"
 	"github.com/mariusor/render"
@@ -40,7 +41,7 @@ var (
 		Funcs: []template.FuncMap{{
 			"sanitize":     sanitize,
 			"lower":        strings.ToLower,
-			"tagNormalize": othrys.TagNormalize,
+			"tagNormalize": tagextractor.TagNormalize,
 		}},
 		Delims:                    render.Delims{Left: "{{", Right: "}}"},
 		Charset:                   "UTF-8",
@@ -95,7 +96,7 @@ func withTagObjects() url.Values {
 }
 
 func newActivityPubTag(tag string, baseURL vocab.IRI) *vocab.Object {
-	tag = "#" + othrys.TagNormalize(tag)
+	tag = "#" + tagextractor.TagNormalize(tag)
 	t := new(vocab.Object)
 	t.Name = nl(tag)
 	t.To.Append(vocab.PublicNS)
@@ -179,7 +180,7 @@ func acceptFollows(actor *vocab.Actor, cl client.PubClient) error {
 func defaultActivityPubTags(date time.Time, baseURL vocab.IRI) vocab.ItemCollection {
 	return vocab.ItemCollection{
 		newActivityPubTag(strings.ToLower(date.Month().String()), baseURL),
-		newActivityPubTag("esports", baseURL),
+		newActivityPubTag("eSports", baseURL),
 		newActivityPubTag("calendar", baseURL),
 	}
 }
@@ -214,7 +215,7 @@ func loadTagsToEvent(rel calendar.Event, tags vocab.ItemCollection) (calendar.Ev
 	rel.Tags = make(vocab.ItemCollection, 0)
 	for _, t := range tags {
 		for _, tag := range rel.TagNames {
-			tag = "#" + othrys.TagNormalize(tag)
+			tag = "#" + tagextractor.TagNormalize(tag)
 			tagName := othrys.NameOf(t)
 			if strings.EqualFold(tag, tagName) && !rel.Tags.Contains(t) {
 				rel.Tags = append(rel.Tags, t)
