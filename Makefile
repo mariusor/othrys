@@ -37,9 +37,13 @@ endif
 BUILD := $(GO) build $(BUILDFLAGS)
 TEST := $(GO) test $(BUILDFLAGS)
 
-.PHONY: all $(BIN_CTL) $(BIN_ICAL) clean test coverage install uninstall units
+.PHONY: all $(BIN_CTL) $(BIN_ICAL) clean test coverage install uninstall units download
 
 all: $(BIN_CTL) $(BIN_ICAL) units
+
+download:
+	$(GO) mod download all
+	$(GO) mod tidy
 
 $(BIN_CTL): bin/$(BIN_CTL)
 bin/$(BIN_CTL): go.mod cmd $(APPSOURCES)
