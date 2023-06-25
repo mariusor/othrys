@@ -32,7 +32,7 @@ import (
 )
 
 const eventTitleTpl = `{{ if gt (len .Event.Category) 0}}{{.Event.Category}}: {{ end }}{{ .Event.Stage }}`
-const eventContentTpl = `{{ if gt (len .Event.Content) 0}}<div>{{ .Event.Content }}</div>{{ end }}`
+const eventContentTpl = `{{ if gt (len .Event.Content) 0}}{{ .Event.Content | Markdown }}{{ end }}`
 
 var (
 	defaultRenderOptions = render.Options{
@@ -58,6 +58,7 @@ var (
 				Funcs(template.FuncMap{
 			"sanitize":   sanitize,
 			"lower":      strings.ToLower,
+			"Markdown":   renderMarkdown,
 			"renderTag":  renderTagHTML,
 			"commonTags": commonTags,
 		}).Parse(eventContentTpl))

@@ -8,10 +8,22 @@ import (
 
 	"git.sr.ht/~mariusor/tagextractor"
 	vocab "github.com/go-ap/activitypub"
+	"gitlab.com/golang-commonmark/markdown"
 )
 
 type tags []string
 
+func renderMarkdown(data string) template.HTML {
+	md := markdown.New(
+		markdown.HTML(true),
+		markdown.Tables(true),
+		markdown.Linkify(false),
+		markdown.Typographer(true),
+		markdown.Breaks(true),
+	)
+	data = md.RenderToString([]byte(data))
+	return template.HTML(data)
+}
 func renderTagHTML(t vocab.Item) template.HTML {
 	render := ""
 
