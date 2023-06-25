@@ -10,15 +10,15 @@ require (
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/charmbracelet/bubbles v0.15.0
 	github.com/charmbracelet/bubbletea v0.23.2
-	github.com/go-ap/activitypub v0.0.0-20230514141345-45936cc2f768
-	github.com/go-ap/client v0.0.0-20230514142616-d54d23930714
+	github.com/go-ap/activitypub v0.0.0-20230623140027-da408bbcc578
+	github.com/go-ap/client v0.0.0-20230623140942-8775194a9f6a
 	github.com/go-ap/errors v0.0.0-20221205040414-01c1adfc98ea
 	github.com/mariusor/render v1.5.1-0.20221026090743-ab78c1b3aa95
 	github.com/soh335/ical v0.0.0-20160115065015-8bf3eeeb3583
 	github.com/urfave/cli v1.22.13
 	gitlab.com/golang-commonmark/markdown v0.0.0-20211110145824-bf3e522c626a
 	go.etcd.io/bbolt v1.3.7
-	golang.org/x/oauth2 v0.8.0
+	golang.org/x/oauth2 v0.9.0
 	golang.org/x/sync v0.1.0
 )
 
@@ -53,10 +53,10 @@ require (
 	gitlab.com/golang-commonmark/linkify v0.0.0-20191026162114-a0c2df6c8f82 // indirect
 	gitlab.com/golang-commonmark/mdurl v0.0.0-20191124015652-932350d1cb84 // indirect
 	gitlab.com/golang-commonmark/puny v0.0.0-20191124015043-9f83538fa04f // indirect
-	golang.org/x/net v0.10.0 // indirect
-	golang.org/x/sys v0.8.0 // indirect
-	golang.org/x/term v0.8.0 // indirect
-	golang.org/x/text v0.9.0 // indirect
+	golang.org/x/net v0.11.0 // indirect
+	golang.org/x/sys v0.9.0 // indirect
+	golang.org/x/term v0.9.0 // indirect
+	golang.org/x/text v0.10.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 )
