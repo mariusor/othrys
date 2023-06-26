@@ -4,14 +4,14 @@ go 1.19
 
 require (
 	git.sr.ht/~mariusor/lw v0.0.0-20230317075520-07e173563bf8
-	git.sr.ht/~mariusor/tagextractor v0.0.0-20230528125432-ead9ee17a125
+	git.sr.ht/~mariusor/tagextractor v0.0.0-20230609074851-6a5cf1bab44d
 	git.sr.ht/~mariusor/wrapper v0.0.0-20230104101555-9bfc303f6588
 	github.com/McKael/madon v2.3.0+incompatible
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/charmbracelet/bubbles v0.15.0
 	github.com/charmbracelet/bubbletea v0.23.2
-	github.com/go-ap/activitypub v0.0.0-20230623140027-da408bbcc578
-	github.com/go-ap/client v0.0.0-20230623140942-8775194a9f6a
+	github.com/go-ap/activitypub v0.0.0-20230626173101-16e4163853e3
+	github.com/go-ap/client v0.0.0-20230626173150-f30f1cc74140
 	github.com/go-ap/errors v0.0.0-20221205040414-01c1adfc98ea
 	github.com/mariusor/render v1.5.1-0.20221026090743-ab78c1b3aa95
 	github.com/soh335/ical v0.0.0-20160115065015-8bf3eeeb3583
@@ -58,5 +58,5 @@ require (
 	golang.org/x/term v0.9.0 // indirect
 	golang.org/x/text v0.10.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/protobuf v1.30.0 // indirect
+	google.golang.org/protobuf v1.31.0 // indirect
 )
