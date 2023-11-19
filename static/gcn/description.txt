@@ -1,0 +1,9 @@
+GCN Cycling calendar
+
+I post cycling races as they happen for Cyclocross, Gravel, Mountain Bike and Road.
+
+Software by <a href="https://metalhead.club/@mariusor">@mariusor</a>: <a href="https://git.sr.ht/~mariusor/othrys">https://git.sr.ht/~mariusor/othrys</a>.
+
+The data is retrieved from the publicly available calendar that GCN curates.
+
+Many thanks to them for keeping it free and accessible.

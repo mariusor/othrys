@@ -2,15 +2,16 @@ package calendar
 
 import (
 	"fmt"
-	vocab "github.com/go-ap/activitypub"
 	"net/url"
 	"path/filepath"
 	"sort"
 	"strings"
 	"time"
 
+	"git.sr.ht/~mariusor/othrys/calendar/gcn"
 	"git.sr.ht/~mariusor/othrys/calendar/liquid"
 	"git.sr.ht/~mariusor/othrys/calendar/plusforward"
+	vocab "github.com/go-ap/activitypub"
 )
 
 var DefaultCalendars = []string{liquid.LabelTeamLiquid, plusforward.LabelPlusForward}
@@ -121,13 +122,13 @@ func inStringList(s string, list []string) bool {
 func GetTypes(strs []string) []string {
 	types := make([]string, 0)
 	if len(strs) == 0 {
-		return append(liquid.ValidTypes[:], plusforward.ValidTypes[:]...)
+		return append(append(liquid.ValidTypes[:], plusforward.ValidTypes[:]...), gcn.ValidTypes[:]...)
 	}
 	for _, typ := range strs {
 		if ext := filepath.Ext(typ); ext != "" {
 			typ = strings.Replace(typ, ext, "", 1)
 		}
-		if !liquid.ValidType(typ) && !plusforward.ValidType(typ) || inStringList(typ, types) {
+		if !liquid.ValidType(typ) && !plusforward.ValidType(typ) && !gcn.ValidType(typ) || inStringList(typ, types) {
 			continue
 		}
 		if typ == liquid.LabelTeamLiquid {
@@ -213,6 +214,8 @@ func GetCalendarURL(typ string, date time.Time, byWeek bool) (*url.URL, error) {
 		return plusforward.GetCalendarURL(typ, date, byWeek)
 	} else if liquid.ValidType(typ) {
 		return liquid.GetCalendarURL(typ, date, byWeek)
+	} else if gcn.ValidType(typ) {
+		return gcn.GetCalendarURL(typ, date)
 	}
 	return nil, fmt.Errorf("invalid type %s", typ)
 }
@@ -260,6 +263,27 @@ func LoadEvents(typ string, date time.Time) (Events, error) {
 				Stage:        ev.Stage,
 				Content:      ev.Content,
 				MatchCount:   ev.MatchCount,
+				Links:        ev.Links,
+				Canceled:     ev.Canceled,
+				TagNames:     ev.TagNames,
+			})
+		}
+	} else if gcn.ValidType(typ) {
+		e, err := gcn.LoadEvents(u, date)
+		if err != nil {
+			return nil, err
+		}
+		for _, ev := range e {
+			events = append(events, Event{
+				CalID:        ev.CalID,
+				StartTime:    ev.StartTime,
+				Duration:     ev.EndTime.Sub(ev.StartTime),
+				LastModified: ev.LastModified,
+				Type:         gcn.Label(ev.Discipline),
+				Category:     ev.Classification,
+				Stage:        ev.Classification,
+				Content:      ev.Content,
+				MatchCount:   1,
 				Links:        ev.Links,
 				Canceled:     ev.Canceled,
 				TagNames:     ev.TagNames,
