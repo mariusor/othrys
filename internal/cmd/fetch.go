@@ -59,11 +59,11 @@ func DataPath() string {
 	xdgDataPath := filepath.Join(homeDir, ".local", "share")
 	appPath := filepath.Join(xdgDataPath, AppName)
 
-	if _, err := os.Stat(appPath); err != nil && errors.Is(err, os.ErrNotExist) {
-		err := MkDirIfNotExists(appPath)
-		if err != nil {
-			log.Fatalf("Error: %s", err.Error())
+	if _, err := os.Stat(appPath); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			err = MkDirIfNotExists(appPath)
 		}
+		log.Fatalf("Error: %s", err.Error())
 	}
 	return appPath
 }

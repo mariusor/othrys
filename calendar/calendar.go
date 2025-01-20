@@ -20,6 +20,10 @@ type Fetcher interface {
 	Load(startDate time.Time) (Events, error)
 }
 
+type Source interface {
+	Load() error
+}
+
 type Event struct {
 	CalID        int64
 	StartTime    time.Time
