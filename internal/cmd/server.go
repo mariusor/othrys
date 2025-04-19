@@ -65,7 +65,7 @@ func serverStart(c *cli.Context) error {
 			exit <- 0
 		},
 		syscall.SIGTERM: func(exit chan int) {
-			info("SIGITERM received, force stopping")
+			info("SIGTERM received, force stopping")
 			exit <- 0
 		},
 		syscall.SIGQUIT: func(exit chan int) {
